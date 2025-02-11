@@ -1,0 +1,103 @@
+#######################################################################
+# Frontend Specification – Recherche de Randonnées
+#######################################################################
+
+1. **Objectif de l’application**
+   - Permettre aux utilisateurs de rechercher des randonnées en langage naturel.
+   - Afficher les résultats de recherche enrichis par l’analyse sémantique, les filtres appliqués, et une synthèse générée par le LLM.
+
+2. **Endpoints Backend à intégrer**
+   - **/search/ (POST)**
+     - **Entrée :**
+       - Paramètre `query` (string) : La requête utilisateur en langage naturel.
+     - **Sortie :** JSON contenant :
+       - `interpreted_params` : Objet avec les informations extraites par OpenAI.
+         - Exemple :
+           {
+             "semantic_text": "Recherche d'une randonnée pédestre de 10km",
+             "location": {"lat": 44.1234, "lon": 3.5678} ou null,
+             "distance": nombre entier en mètres (distance maximale autour du lieu, par défaut 2km si précisé),
+             "filters": {
+               "longueur": 10000  ou {"min": 8000, "max": 12000},
+               "difficulte": "Difficile" ou null,
+               "pratique": "pédestre" ou null,
+               "note_minimum": float ou null,
+               "accessibilite": {"pmr": bool ou null, "poussette": bool ou null},
+               "saison": string ou null
+             }
+           }
+       - `results` : Liste d'objets résultats (documents Elasticsearch) avec pour chaque :
+         - `id_local`, `nom_itineraire`, `presentation`, `longueur`, `difficulte`, `pratique`, `score`, etc.
+       - `llm_response` : Texte de synthèse généré par OpenAI, résumant la recherche.
+
+   - **/index_data/** et **/check_data/**
+     - Peuvent être utilisés pour la gestion et la vérification des données, mais ne sont pas directement exposés aux utilisateurs finaux.
+
+3. **Fonctionnalités Frontend**
+   - **Page d'accueil / de Recherche**
+     - **Champ de recherche libre** : Zone de saisie permettant d'écrire une requête en langage naturel
+       - Exemple : "Je cherche une randonnée de 10km facile avec vue panoramique près de Brenoux"
+     - **Filtres avancés (optionnels)** :
+       - **Localisation** : Saisie libre qui sera géocodée par l'API (via Nominatim)
+       - **Distance de recherche** : (optionnel) rayon (en mètres) autour de la localisation pour filtrer les départs de randonnées.
+       - **Longueur de l'itinéraire** : Lorsque l'utilisateur indique une valeur unique (ex: 10km), appliquer automatiquement une tolérance (±2km). Vous pouvez également permettre une saisie avec "min" et "max" pour un filtrage plus précis.
+       - **Difficulté** : Choix via liste déroulante (Valeurs : "Très facile", "Facile", "moyen", "Difficile").
+       - **Pratique** : Choix via liste déroulante (ex: "pédestre", "vtt", "cyclo", etc.)
+       - **Note minimum** : Possibilité de fixer une note minimale (sur 5) via un slider ou un champ numérique.
+       - **Accessibilité** : Options pour filtrer (ex: PMR, poussette)
+       - **Saison** : Saisie ou sélection de la saison actuelle ou recommandée.
+     - **Bouton de recherche** et interaction instantanée avec l'API → affichage du spinner ou message de chargement durant la requête.
+
+   - **Affichage des résultats**
+     - **Liste des résultats** :
+       - Chaque résultat devra afficher :
+         - Le nom de l'itinéraire, une courte présentation, la longueur, la difficulté, la pratique, et éventuellement un score.
+         - Un lien ou un bouton pour visualiser les détails complets (souvent sur une page dédiée ou dans un modal).
+       - Possibilité d'afficher des icônes ou des étiquettes (badges) pour la difficulté et la pratique.
+     - **Synthèse générée par le LLM**
+       - Afficher le texte de `llm_response` en haut ou en bas de la liste, pour expliciter la correspondance de la recherche (conseils, explication de l'absence de résultats, suggestions, etc.).
+     - **Carte interactive** :
+       - Intégrer un composant de carte (par exemple avec Leaflet ou Google Maps) pour afficher la position du **point de départ** (`coordonnees_depart`) des itinéraires retournés.
+       - Possibilité d'appliquer un filtre géospatial visuel sur la carte.
+
+4. **Flux Utilisateur**
+   - **Saisie de la recherche** 
+     - L'utilisateur entre une requête en langage naturel.
+     - Si le champ de localisation est renseigné, le frontend envoie ce texte à l'API qui effectue une géocodification (Nominatim) et retourne les coordonnées GPS.
+   - **Communication avec le Backend**
+     - Envoi de la requête (/search) avec query = texte saisi.
+     - Réception d'une réponse JSON contenant :
+       - Les paramètres interprétés (affichés en transparence ou pour debug)
+       - La liste des résultats
+       - La réponse générée par le LLM (résumé et conseils).
+   - **Affichage des Résultats**
+     - Les itinéraires sont listés avec leurs informations clés.
+     - Une carte dynamique affiche la position des départs.
+     - La synthèse textuelle (LLM) permet d'orienter l'utilisateur en cas de faible correspondance ou pour aider à préciser la recherche.
+   - **Interaction Améliorée**
+     - Filtrage dynamique : possibilité de modifier les filtres et relancer la recherche sans recharger la page.
+     - Pagination ou "infinite scroll" pour gérer de nombreux résultats.
+
+5. **Considérations Techniques**
+   - **Framework** : Développer le frontend en tant qu'application SPA (React, Vue.js ou Angular).
+   - **API Communication** : Utiliser des appels asynchrones (fetch/Axios) pour communiquer avec le backend.
+   - **Accessibilité** : Respecter les bonnes pratiques d'accessibilité (conception responsive, navigation clavier, etc.).
+   - **Gestion des erreurs** : Afficher des messages d'erreur clairs en cas de problème (ex: absence de résultats, erreur technique, échec de géocodification).
+   - **Style et UX Design** : 
+       - Interface épurée et intuitive.
+       - Couleurs et typographie harmonisées pour faciliter la lisibilité.
+       - Utilisation d'icônes pour symboliser les filtres et les informations clés (ex: difficulty, pratique).
+
+6. **Informations Complémentaires**
+   - **Paramètres OpenAI** :
+       - Les paramètres de recherche interprétés (semantic_text, filters, etc.) pourront être affichés (de façon optionnelle) pour expliquer comment la requête utilisateur a été comprise.
+   - **Données géographiques** :
+       - Le champ "coordonnees_depart" dans les résultats est utilisé pour la carte et la recherche géospatiale.
+       - Le filtre "distance" concerne le rayon de recherche autour du lieu fourni.
+   - **Tolérance pour la longueur** :
+       - Une tolérance de ±2000 mètres est appliquée lorsqu'une seule valeur de longueur est donnée.
+       - Possibilité d'afficher cette tolérance côté frontend pour que l'utilisateur comprenne la plage de recherche appliquée.
+       
+#######################################################################
+# Fin du document de spécifications frontend
+####################################################################### 

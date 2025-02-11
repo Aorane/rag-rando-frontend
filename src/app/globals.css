@@ -1,6 +1,55 @@
+@import 'ol/ol.css';
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes subtle-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-subtle-zoom {
+  animation: subtle-zoom 20s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+}
+
+/* Styles personnalisés pour les scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
 
 :root {
   --background: #ffffff;
@@ -18,4 +67,45 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* Styles personnalisés pour la carte */
+.ol-control {
+  background-color: rgba(255,255,255,0.8);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.ol-zoom {
+  top: 1rem;
+  left: 1rem;
+}
+
+.ol-zoom button {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  margin: 2px;
+  border-radius: 4px;
+  height: 1.75rem;
+  width: 1.75rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ol-zoom button:hover {
+  background-color: #F3F4F6;
+}
+
+/* Ajoutez ces classes */
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0,0,0,0.5);
 }
