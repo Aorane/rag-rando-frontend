@@ -19,7 +19,7 @@ export interface SearchResponse {
     };
   };
   results: HikeResult[];
-  llm_response: string;
+  llm_response: LLMResponse;
 }
 
 /**
@@ -85,4 +85,21 @@ export interface HikeResult {
     auteur?: string;
     licence?: string;
   }>;
+}
+
+// Ajout du type pour la nouvelle structure LLM
+export interface LLMResponse {
+  summary: {
+    title: string;
+    interpretation: string;
+    results_count: string;
+  };
+  analysis: {
+    main_points: string[];
+    suggestions: string[];
+  };
+  highlights: {
+    id: string;
+    text: string;
+  }[];
 } 

@@ -278,7 +278,7 @@ export default function Home() {
             <div className="xl:col-span-3">
               <div className="bg-white rounded-lg shadow-lg sticky top-24">
                 <div className="p-4 border-b">
-                  <h3 className="font-semibold text-lg">Suggestions de l'IA</h3>
+                  <h3 className="font-semibold text-lg">Analyse IA</h3>
                 </div>
                 <div className="p-4">
                   {error && (
@@ -287,20 +287,70 @@ export default function Home() {
                     </div>
                   )}
                   {searchResults?.llm_response ? (
-                    <div 
-                      className="prose prose-sm max-w-none prose-green"
-                      onMouseMove={handleLLMTextHover}
-                      onMouseLeave={() => setHoveredTrailId(null)}
-                    >
-                      {/* Diviser le texte en paragraphes et ajouter des event handlers */}
-                      {searchResults.llm_response.split('\n').map((paragraph, index) => (
-                        <p 
-                          key={index}
-                          className="hover:bg-green-50 transition-colors rounded cursor-pointer"
-                        >
-                          {paragraph}
+                    <div className="space-y-6">
+                      {/* En-tête */}
+                      <div className="space-y-3">
+                        <h4 className="text-lg font-medium text-gray-800">
+                          {searchResults.llm_response.summary.title}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {searchResults.llm_response.summary.interpretation}
                         </p>
-                      ))}
+                        <div className="inline-block px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                          {searchResults.llm_response.summary.results_count}
+                        </div>
+                      </div>
+
+                      {/* Points clés */}
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-700">Points clés</h5>
+                        <ul className="space-y-2">
+                          {searchResults.llm_response.analysis.main_points.map((point, index) => (
+                            <li 
+                              key={index}
+                              className="flex gap-2 text-sm text-gray-600"
+                            >
+                              <span className="text-green-600">•</span>
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Suggestions */}
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-700">Suggestions</h5>
+                        <ul className="space-y-2">
+                          {searchResults.llm_response.analysis.suggestions.map((suggestion, index) => (
+                            <li 
+                              key={index}
+                              className="flex gap-2 text-sm text-gray-600 items-start"
+                            >
+                              <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                              {suggestion}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Randonnées mises en avant */}
+                      <div className="space-y-3">
+                        <h5 className="font-medium text-gray-700">Randonnées suggérées</h5>
+                        <div className="space-y-3">
+                          {searchResults.llm_response.highlights.map((highlight, index) => (
+                            <div 
+                              key={index}
+                              className="p-3 bg-gray-50 rounded-lg hover:bg-green-50 transition-colors cursor-pointer"
+                              onMouseEnter={() => setHoveredTrailId(highlight.id)}
+                              onMouseLeave={() => setHoveredTrailId(null)}
+                            >
+                              <p className="text-sm text-gray-600">{highlight.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-gray-500 italic">
