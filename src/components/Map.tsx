@@ -10,12 +10,10 @@ import 'ol/ol.css';
 import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
-import Polygon from 'ol/geom/Polygon';
 import MultiPolygon from 'ol/geom/MultiPolygon';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 import { Style, Stroke, Circle, Fill } from 'ol/style';
-import { boundingExtent } from 'ol/extent';
 import Overlay from 'ol/Overlay';
 
 interface HikingTrail {
@@ -248,7 +246,7 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
         const isHovered = hoveredTrailId === feature.getId();
         return new Style({
           stroke: new Stroke({
-            color: isHovered ? '#f4a460' : '#ff8c00',
+            color: isHovered ? '#a52a2a' : '#ff8c00',
             width: isHovered ? 4 : 2,
           })
         });
@@ -340,15 +338,15 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
   };
 
   return (
-    <div className="space-y-4">
-      <div className="relative">
+    <div className="space-y-4  ">
+      {/* <div className="relative p-2">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && searchLocation()}
           placeholder="Rechercher une ville..."
-          className="w-full px-4 py-2 rounded-lg border border-gray-300
+          className="w-[80%] px-4 py-2 rounded-lg border border-gray-300  m-4
                    focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
         />
         <button
@@ -366,19 +364,15 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
             </svg>
           )}
         </button>
-      </div>
+      </div> */}
 
-      <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-lg">
-        <div ref={mapRef} className="w-full h-full" />
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2 space-y-2">
-          <button className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded">
-            OSM
-          </button>
-        </div>
+      <div className="relative w-[full] h-[100vh] rounded-lg overflow-hidden shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px]">
+        <div ref={mapRef} className="w-full h-full shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px] " />
+   
         <div 
           ref={tooltipRef}
-          className="absolute hidden bg-white px-3 py-1.5 rounded-lg shadow-lg text-sm
-                     border border-gray-200 pointer-events-none z-10"
+          className="absolute hidden bg-white px-3 py-1.5 rounded-lg   text-sm 
+                     border border-gray-200 pointer-events-none z-10 "
         />
       </div>
     </div>

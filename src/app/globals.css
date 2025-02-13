@@ -109,3 +109,261 @@ body {
 .text-shadow-lg {
   text-shadow: 0 4px 8px rgba(0,0,0,0.5);
 }
+
+/* Styles pour la scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animation de transition pour les onglets */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content-enter {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Styles pour les éléments de la liste */
+.hike-item {
+  @apply transition-all duration-200;
+}
+
+.hike-item:hover {
+  @apply bg-gray-50 transform scale-[1.01];
+}
+
+/* Styles pour les tooltips de la carte */
+.map-tooltip {
+  @apply bg-white px-3 py-2 rounded-lg shadow-lg text-sm border border-gray-200;
+  max-width: 300px;
+}
+
+/* Ajouter cette règle */
+.absolute-inset {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+/* Ajuster les styles pour une meilleure harmonie */
+.hike-card {
+  @apply bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+  border: 1px solid #f0f0f0;
+}
+
+.hike-card:hover {
+  transform: translateY(-1px);
+}
+
+/* Améliorer le style des onglets */
+.tab-button {
+  @apply flex-1 py-3 text-sm font-medium relative transition-colors duration-200;
+}
+
+.tab-button::after {
+  content: '';
+  @apply absolute bottom-0 left-0 right-0 h-0.5 bg-green-600 transform scale-x-0 transition-transform duration-200;
+}
+
+.tab-button.active::after {
+  @apply scale-x-100;
+}
+
+/* Style pour le conteneur principal */
+.main-container {
+  height: calc(100vh - env(safe-area-inset-top));
+  @apply overflow-hidden;
+}
+
+/* Améliorer le style des scrollbars */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+/* Styles pour le panneau mobile */
+@media (max-width: 768px) {
+  .touch-handle {
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Effet de rebond pour le panneau */
+  .panel-bounce {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Améliorer la visibilité de la poignée */
+  .touch-handle::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    width: 36px;
+    height: 4px;
+    background-color: #E5E7EB;
+    border-radius: 2px;
+    transform: translateX(-50%);
+  }
+
+  /* Style pour l'aperçu du panneau */
+  .panel-preview {
+    transform: translateY(calc(100% - 80px));
+    will-change: transform;
+  }
+
+  /* Overlay avec flou */
+  .panel-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .panel-mobile {
+    height: 85vh; /* Hauteur fixe sur mobile */
+    max-height: calc(100vh - 4rem); /* Évite le débordement */
+  }
+  
+  .panel-content {
+    max-height: calc(100% - 3rem); /* Espace pour la poignée */
+    overflow-y: auto;
+  }
+}
+
+/* Désactiver le scroll sur le body quand le panneau est ouvert */
+.panel-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Animation de rebond pour le panneau */
+@keyframes bounceIn {
+  0% {
+    transform: translateY(100%);
+  }
+  60% {
+    transform: translateY(-10%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.panel-enter {
+  animation: bounceIn 0.5s ease-out forwards;
+}
+
+/* Animation du panneau */
+.panel-slide-enter {
+  transform: translateY(100%);
+}
+
+.panel-slide-enter-active {
+  transform: translateY(0);
+  transition: transform 300ms ease-in-out;
+}
+
+.panel-slide-exit {
+  transform: translateY(0);
+}
+
+.panel-slide-exit-active {
+  transform: translateY(100%);
+  transition: transform 300ms ease-in-out;
+}
+
+/* Ajuster la hauteur de la carte en mode mobile */
+.map-container-mobile {
+  height: 100vh;
+  height: -webkit-fill-available;
+}
+
+/* Améliorer l'apparence générale */
+.main-layout {
+  @apply flex flex-col min-h-screen;
+}
+
+/* Style du footer */
+.footer-link {
+  @apply text-gray-400 hover:text-white transition-colors duration-200;
+  position: relative;
+}
+
+.footer-link::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-green-500 transition-all duration-300;
+}
+
+.footer-link:hover::after {
+  @apply w-full;
+}
+
+/* Améliorer l'apparence des boutons */
+.btn-primary {
+  @apply px-4 py-2 bg-green-600 text-white rounded-lg 
+         hover:bg-green-700 transition-all duration-200
+         transform hover:scale-105 hover:shadow-lg;
+}
+
+/* Améliorer l'apparence des inputs */
+.input-primary {
+  @apply px-4 py-2 rounded-lg bg-gray-50 border border-gray-200
+         focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
+         transition-all duration-200;
+}
+
+/* Animation de hover pour les cartes */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Style pour les badges */
+.badge {
+  @apply px-2 py-1 rounded-full text-sm font-medium;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-danger {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Améliorer la gestion du scroll */
+.content-scroll {
+  @apply overflow-y-auto overscroll-contain;
+  -webkit-overflow-scrolling: touch;
+}
