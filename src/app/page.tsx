@@ -158,7 +158,7 @@ export default function Home() {
             <picture>
               <img
                 src="/mountains3.jpg"
-                alt="Paysage des Cévennes"
+                alt="Paysage des Cévennes "
                 className="object-cover transform scale-105 motion-safe:animate-subtle-zoom"
               />
             </picture>
