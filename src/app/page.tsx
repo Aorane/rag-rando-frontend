@@ -157,7 +157,7 @@ export default function Home() {
           <div className="absolute inset-0">
             <picture>
               <img
-                src="/mountains3.jpg"
+                src="/mountains2.jpg"
                 alt="Paysage des Cévennes "
                 className="object-cover transform scale-105 motion-safe:animate-subtle-zoom"
               />
