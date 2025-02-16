@@ -110,10 +110,12 @@ export default function HikeModal({ hike, onClose }: HikeModalProps) {
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         {hike.medias.filter(m => m.type_media === 'image').map((media, index) => (
                           <div key={index} className="relative aspect-video">
-                            <img
+                            <Image 
                               src={repareUrl(media.url)}
-                              alt={media.titre || 'Photo de la randonnée'}
-                              className="object-cover rounded-lg"
+                              alt={media.legende || ''}
+                              width={800}
+                              height={600}
+                              className="w-full h-auto"
                             />
                             {media.legende && (
                               <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2">

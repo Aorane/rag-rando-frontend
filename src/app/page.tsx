@@ -7,29 +7,15 @@ import HikeCard from '@/components/HikeCard';
 import HikeModal from '@/components/HikeModal';
 import { searchHikes } from '@/services/api';
 import type { SearchResponse, HikeResult } from '@/types/search';
-import { getDifficultyColor, getPratiqueIcon } from '@/utils/text';
-
-
-
-// Fonction utilitaire pour formater la durée
-const formatDuration = (hours: number) => {
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
-  return h > 0 ? `${h}h${m > 0 ? m : ''}` : `${m}min`;
-};
-
-
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [hoveredTrailId, setHoveredTrailId] = useState<string | null>(null);
   const [selectedHike, setSelectedHike] = useState<HikeResult | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>(null);
+  const [isUserScrolling, ] = useState(false);
   const [activeTab, setActiveTab] = useState("synthese");
   const [isPanelVisible, setIsPanelVisible] = useState(false);
 
@@ -37,33 +23,17 @@ export default function Home() {
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
-    setError(null);
 
     try {
       const results = await searchHikes(searchQuery);
       setSearchResults(results);
       console.log('============>', results)
     } catch (err) {
-      setError("Une erreur s'est produite lors de la recherche. Veuillez réessayer.");
+      console.error("Une erreur s&apos;est produite lors de la recherche. Veuillez réessayer.", err);
     } finally {
       setIsSearching(false);
     }
   };
-
-  const popularAreas = [
-    'Mont Aigoual',
-    'Mont Lozère',
-    'Vallée du Tarn',
-    'Gorges de la Jonte',
-    'Vallée Française',
-    'Corniche des Cévennes'
-  ];
-
-  const difficultyLevels = [
-    { label: 'Facile', color: 'bg-green-100 text-green-800' },
-    { label: 'Modéré', color: 'bg-yellow-100 text-yellow-800' },
-    { label: 'Difficile', color: 'bg-red-100 text-red-800' }
-  ];
 
   // Fonction pour faire défiler jusqu'à la randonnée
   const scrollToHike = (hikeId: string) => {
@@ -74,7 +44,6 @@ export default function Home() {
       // Calculer la position de défilement dans le conteneur
       const container = resultsRef.current;
       const elementTop = (hikeElement as HTMLElement).offsetTop;
-      const containerScrollTop = container.scrollTop;
       const containerHeight = container.clientHeight;
       
       // Centrer l'élément dans le conteneur de défilement
@@ -92,38 +61,7 @@ export default function Home() {
     if (hoveredTrailId && !isUserScrolling) {
       scrollToHike(hoveredTrailId);
     }
-  }, [hoveredTrailId, isUserScrolling]);
-
-  // Gestionnaire de scroll utilisateur
-  const handleScroll = () => {
-    setIsUserScrolling(true);
-    
-    // Réinitialiser isUserScrolling après un délai
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsUserScrolling(false);
-    }, 1000); // Attendre 1 seconde après le dernier scroll
-  };
-
-  // Fonction pour détecter si le texte survolé contient une randonnée
-  const handleLLMTextHover = (event: React.MouseEvent<HTMLDivElement>) => {
-    const text = (event.target as HTMLElement).textContent?.toLowerCase();
-    if (!text || !searchResults?.results) return;
-
-    // Chercher quelle randonnée est mentionnée dans le texte survolé
-    const matchingHike = searchResults.results.find(hike => 
-      text.includes(hike.nom_itineraire.toLowerCase())
-    );
-
-    if (matchingHike) {
-      setHoveredTrailId(matchingHike.id_local);
-    } else {
-      setHoveredTrailId(null);
-    }
-  };
+  }, [hoveredTrailId, isUserScrolling, scrollToHike]);
 
   return (
     <main className="min-h-screen bg-gray-50  ">
@@ -197,7 +135,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                           d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                   </svg>
-                  <span className="hidden sm:inline">S'inscrire</span>
+                  <span className="hidden sm:inline">S&apos;inscrire</span>
                 </button>
 
                 {/* Menu mobile */}
@@ -290,19 +228,19 @@ export default function Home() {
 
               {/* Suggestions d'utilisation */}
               <div className="mt-4 text-sm text-gray-500">
-                <p className="font-medium mb-2">Essayez d'être précis :</p>
+                <p className="font-medium mb-2">Essayez d&apos;être précis :</p>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <li className="flex items-center gap-2">
                     <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    "Randonnée de 3h max avec des ruisseaux"
+                    &quot;Randonnée de 3h max avec des ruisseaux&quot;
                   </li>
                   <li className="flex items-center gap-2">
                     <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    "Circuit ombragé pour l'été avec pique-nique"
+                    &quot;Circuit ombragé pour l&apos;été avec pique&quot;nique&quot;
                   </li>
                 </ul>
               </div>
@@ -455,6 +393,9 @@ export default function Home() {
                           <p className="text-sm text-gray-600">
                             {searchResults.llm_response.summary.interpretation}
                           </p>
+                          <p className="text-sm text-gray-600">ffffffffffff
+                            {searchResults.llm_response.summary.comparaison}
+                          </p>
                           <div className="inline-block px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
                             {searchResults.llm_response.summary.results_count}
                           </div>
@@ -518,7 +459,6 @@ export default function Home() {
                           onHover={(id) => setHoveredTrailId(id)}
                           onSelect={(h) => setSelectedHike(h)}
                           isHighlighted={hoveredTrailId === hike.id_local}
-                          className="mb-2"
                         />
                       ))}
                     </div>
@@ -560,31 +500,6 @@ export default function Home() {
             onClose={() => setSelectedHike(null)} 
           />
         )}
-
-        {/* Section Secteurs Populaires */}
-        {/* <section className="max-w-8xl mx-auto px-4 py-8">
-          <div className="mb-8 text-center">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">Découvrez nos secteurs populaires</h3>
-            <p className="text-gray-600">
-              Explorez les zones les plus prisées pour vos randonnées dans les Cévennes.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {popularAreas.map((area, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all hover:scale-105">
-                <div 
-                  className="h-40 bg-cover bg-center"
-                  style={{ backgroundImage: `url('/placeholder.jpg')` }}  // Remplacer par une image réelle si disponible
-                >
-                </div>
-                <div className="p-4">
-                  <h4 className="text-lg font-semibold text-gray-800">{area}</h4>
-                  <p className="text-sm text-gray-500">Découvrez le charme de {area}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section> */}
 
         {/* Footer minimaliste */}
         <footer className="bg-gray-800 text-gray-300 py-4">

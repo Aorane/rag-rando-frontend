@@ -6,7 +6,7 @@ export async function searchHikes(query: string): Promise<SearchResponse> {
   try {
     console.log(`query:`, query);
 
-    const response = await fetch(`http://127.0.0.1:8000/search`, {
+    const response = await fetch(`${API_BASE_URL}/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

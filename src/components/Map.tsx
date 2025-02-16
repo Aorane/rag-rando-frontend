@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
@@ -9,11 +9,10 @@ import { fromLonLat } from 'ol/proj';
 import 'ol/ol.css';
 import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
-import Point from 'ol/geom/Point';
 import MultiPolygon from 'ol/geom/MultiPolygon';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
-import { Style, Stroke, Circle, Fill } from 'ol/style';
+import { Style, Stroke, Fill } from 'ol/style';
 import Overlay from 'ol/Overlay';
 
 interface HikingTrail {
@@ -32,12 +31,6 @@ interface CevennesMapProps {
   onHover?: (id: string | null) => void;
 }
 
-interface NominatimResult {
-  lat: string;
-  lon: string;
-  display_name: string;
-}
-
 interface NominatimAreaResult {
   geojson: {
     type: string;
@@ -49,10 +42,7 @@ interface NominatimAreaResult {
 export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover }: CevennesMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<Map | null>(null);
-  const markerLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
   const vectorLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const cevennesLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<Overlay | null>(null);
@@ -278,64 +268,6 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
       }
     };
   }, [hikingPoints, hoveredTrailId]);
-
-  // Fonction de recherche de ville
-  const searchLocation = async () => {
-    if (!searchQuery.trim() || !mapInstanceRef.current) return;
-
-    setIsSearching(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1&countrycodes=fr`
-      );
-      const data: NominatimResult[] = await response.json();
-      console.log('data', data);
-
-      if (data.length > 0) {
-        const { lat, lon } = data[0];
-        const coordinates = fromLonLat([parseFloat(lon), parseFloat(lat)]);
-
-        // Gestion du marqueur de ville
-        if (markerLayerRef.current) {
-          mapInstanceRef.current.removeLayer(markerLayerRef.current);
-        }
-
-        const markerFeature = new Feature({
-          geometry: new Point(coordinates),
-          name: data[0].display_name,
-        });
-
-        const markerSource = new VectorSource({
-          features: [markerFeature],
-        });
-
-        const markerLayer = new VectorLayer({
-          source: markerSource,
-          style: new Style({
-            image: new Circle({
-              radius: 8,
-              fill: new Fill({ color: '#e11d48' }),
-              stroke: new Stroke({ color: '#ffffff', width: 2 }),
-            }),
-          }),
-        });
-
-        markerLayerRef.current = markerLayer;
-        mapInstanceRef.current.addLayer(markerLayer);
-
-        // Animation vers la ville
-        mapInstanceRef.current.getView().animate({
-          center: coordinates,
-          zoom: 12,
-          duration: 1000,
-        });
-      }
-    } catch (error) {
-      console.error('Erreur lors de la recherche de localisation:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
 
   return (
     <div className="space-y-4  ">

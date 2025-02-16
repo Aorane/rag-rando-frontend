@@ -20,6 +20,12 @@ export interface SearchResponse {
   };
   results: HikeResult[];
   llm_response: LLMResponse;
+  context: Record<string, unknown>;
+  metadata: {
+    total: number;
+    time: number;
+    params: Record<string, unknown>;
+  };
 }
 
 /**
@@ -34,6 +40,7 @@ export interface HikeResult {
   difficulte: string;
   pratique: string;
   score: number;
+  instructions: string;
   
   // Informations géographiques
   depart: string;
@@ -57,7 +64,7 @@ export interface HikeResult {
   type_sol?: string;
   
   // Informations pratiques
-  points_interet?: any[];
+  points_interet?: string[];
   accessibilite?: {
     pmr: boolean;
     poussette: boolean;
@@ -66,7 +73,10 @@ export interface HikeResult {
   note_moyenne?: number;
   nombre_avis?: number;
   parking_info?: string;
-  parking_geometrie?: any;
+  parking_geometrie?: {
+    type: string;
+    coordinates: [number, number][];
+  };
   acces_routier?: string;
   transports_commun?: string;
   
@@ -84,22 +94,25 @@ export interface HikeResult {
     url: string;
     auteur?: string;
     licence?: string;
+    type_media?: string;
   }>;
 }
 
 // Ajout du type pour la nouvelle structure LLM
-export interface LLMResponse {
+export type LLMResponse = {
   summary: {
     title: string;
     interpretation: string;
-    results_count: string;
-  };
+    comparaison: string;
+    results_count: number;
+  },
   analysis: {
     main_points: string[];
     suggestions: string[];
-  };
+    recommendations: string[];
+  },
   highlights: {
     id: string;
     text: string;
   }[];
-} 
+}; 
