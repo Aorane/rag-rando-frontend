@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import CevennesMap from '@/components/Map';
 import HikeCard from '@/components/HikeCard';
 import HikeModal from '@/components/HikeModal';
@@ -15,7 +15,7 @@ export default function Home() {
   const [hoveredTrailId, setHoveredTrailId] = useState<string | null>(null);
   const [selectedHike, setSelectedHike] = useState<HikeResult | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
-  const [isUserScrolling, ] = useState(false);
+  const [isUserScrolling,] = useState(false);
   const [activeTab, setActiveTab] = useState("synthese");
   const [isPanelVisible, setIsPanelVisible] = useState(false);
 
@@ -45,10 +45,10 @@ export default function Home() {
       const container = resultsRef.current;
       const elementTop = (hikeElement as HTMLElement).offsetTop;
       const containerHeight = container.clientHeight;
-      
+
       // Centrer l'élément dans le conteneur de défilement
       const targetScroll = elementTop - containerHeight / 2 + (hikeElement as HTMLElement).clientHeight / 2;
-      
+
       container.scrollTo({
         top: targetScroll,
         behavior: 'smooth'
@@ -69,7 +69,7 @@ export default function Home() {
       <header className="absolute top-0 left-0 right-0 z-50">
         {/* Barre supérieure avec gradient et effet glassmorphism */}
         <div className="h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-600"></div>
-        
+
         <nav className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-100">
           <div className="max-w-7xl mx-auto">
             {/* Barre principale */}
@@ -78,16 +78,16 @@ export default function Home() {
               <div className="flex items-center space-x-8">
                 <div className="flex items-center gap-3 group cursor-pointer">
                   <div className="relative">
-                    <svg className="w-10 h-10 text-green-600 transform group-hover:scale-110 transition-transform duration-300" 
-                         viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 12L8 8L12 12L16 8L20 12" 
-                            stroke="currentColor" strokeWidth="2.5" 
-                            strokeLinecap="round" strokeLinejoin="round"
-                            className="group-hover:text-green-700 transition-colors"/>
-                      <path d="M4 16L8 12L12 16L16 12L20 16" 
-                            stroke="currentColor" strokeWidth="2.5" 
-                            strokeLinecap="round" strokeLinejoin="round"
-                            className="group-hover:text-green-500 transition-colors"/>
+                    <svg className="w-10 h-10 text-green-600 transform group-hover:scale-110 transition-transform duration-300"
+                      viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 12L8 8L12 12L16 8L20 12"
+                        stroke="currentColor" strokeWidth="2.5"
+                        strokeLinecap="round" strokeLinejoin="round"
+                        className="group-hover:text-green-700 transition-colors" />
+                      <path d="M4 16L8 12L12 16L16 12L20 16"
+                        stroke="currentColor" strokeWidth="2.5"
+                        strokeLinecap="round" strokeLinejoin="round"
+                        className="group-hover:text-green-500 transition-colors" />
                     </svg>
                     <div className="absolute -inset-1 bg-green-100 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity"></div>
                   </div>
@@ -119,8 +119,8 @@ export default function Home() {
                 <button className="px-4 py-2 text-gray-600 hover:text-green-700 transition-colors duration-200
                                  flex items-center gap-2 rounded-lg hover:bg-green-50">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span className="hidden sm:inline">Connexion</span>
                 </button>
@@ -132,8 +132,8 @@ export default function Home() {
                                  flex items-center gap-2 relative group">
                   <span className="absolute inset-0 bg-white rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
                   <span className="hidden sm:inline">S&apos;inscrire</span>
                 </button>
@@ -141,7 +141,7 @@ export default function Home() {
                 {/* Menu mobile */}
                 <button className="md:hidden p-2 text-gray-600 hover:text-green-700 transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
               </div>
@@ -155,13 +155,20 @@ export default function Home() {
         <section className="relative h-[100vh] flex items-center justify-center overflow-hidden">
           {/* Overlay d'image avec parallax */}
           <div className="absolute inset-0">
-            <Image
+            <picture>
+              <img
+                src="/mountains3.jpg"
+                alt="Paysage des Cévennes"
+                className="object-cover transform scale-105 motion-safe:animate-subtle-zoom"
+              />
+            </picture>
+            {/* <Image
               src="/mountains3.jpg"
               alt="Paysage des Cévennes"
               fill
               className="object-cover transform scale-105 motion-safe:animate-subtle-zoom"
               priority
-            />
+            /> */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-transparent" />
           </div>
 
@@ -217,10 +224,10 @@ export default function Home() {
                   {isSearching ? (
                     <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <svg className="w-6 h-6 transform group-hover:rotate-6 transition-transform" 
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg className="w-6 h-6 transform group-hover:rotate-6 transition-transform"
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                   )}
                 </button>
@@ -253,26 +260,26 @@ export default function Home() {
           {/* Grille responsive */}
           <div className="grid grid-cols-1 md:grid-cols-12 h-full">
             {/* Indicateur de panneau glissant sur mobile */}
-            <div 
+            <div
               className={`
                 fixed bottom-0 left-0 right-0 z-20 md:hidden
                 ${isPanelVisible ? 'hidden' : 'block'}
               `}
             >
               {/* Barre d'aperçu du panneau avec résumé */}
-              <div 
+              <div
                 className="bg-white rounded-t-xl shadow-lg"
                 onClick={() => setIsPanelVisible(true)}
               >
                 <div className="flex justify-center py-2">
                   <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
                 </div>
- 
+
               </div>
             </div>
 
             {/* Panneau latéral avec gestion responsive */}
-            <div 
+            <div
               className={`
                 fixed inset-x-0 bottom-0 z-30 md:relative md:col-span-4
                 bg-white md:bg-transparent
@@ -283,8 +290,8 @@ export default function Home() {
               `}
             >
               {/* Poignée de glissement sur mobile */}
-              <div 
-                className="h-10 flex flex-col items-center justify-center md:hidden bg-white rounded-t-2xl cursor-grab active:cursor-grabbing touch-handle " 
+              <div
+                className="h-10 flex flex-col items-center justify-center md:hidden bg-white rounded-t-2xl cursor-grab active:cursor-grabbing touch-handle "
                 onTouchStart={() => setIsPanelVisible(!isPanelVisible)}
               >
                 <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
@@ -356,9 +363,9 @@ export default function Home() {
                   <button
                     onClick={() => setActiveTab('synthese')}
                     className={`flex-1 py-3 text-sm font-medium relative transition-colors duration-200
-                               ${activeTab === 'synthese' 
-                                 ? 'text-green-600' 
-                                 : 'text-gray-500 hover:text-gray-700'}`}
+                               ${activeTab === 'synthese'
+                        ? 'text-green-600'
+                        : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     Synthèse
                     {activeTab === 'synthese' && (
@@ -368,9 +375,9 @@ export default function Home() {
                   <button
                     onClick={() => setActiveTab('liste')}
                     className={`flex-1 py-3 text-sm font-medium relative transition-colors duration-200
-                               ${activeTab === 'liste' 
-                                 ? 'text-green-600' 
-                                 : 'text-gray-500 hover:text-gray-700'}`}
+                               ${activeTab === 'liste'
+                        ? 'text-green-600'
+                        : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     Liste
                     {activeTab === 'liste' && (
@@ -469,7 +476,7 @@ export default function Home() {
 
             {/* Overlay sombre quand le panneau est ouvert sur mobile */}
             {isPanelVisible && (
-              <div 
+              <div
                 className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20 md:hidden"
                 onClick={() => setIsPanelVisible(false)}
               />
@@ -477,7 +484,7 @@ export default function Home() {
 
             {/* Carte */}
             <div className="col-span-1 md:col-span-8 relative h-full">
-              <CevennesMap 
+              <CevennesMap
                 hikingPoints={searchResults?.results.map(hike => ({
                   id: hike.id_local,
                   coordinates: hike.geometry.coordinates,
@@ -495,9 +502,9 @@ export default function Home() {
         </section>
 
         {selectedHike && (
-          <HikeModal 
-            hike={selectedHike} 
-            onClose={() => setSelectedHike(null)} 
+          <HikeModal
+            hike={selectedHike}
+            onClose={() => setSelectedHike(null)}
           />
         )}
 
@@ -507,20 +514,20 @@ export default function Home() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               {/* Logo et copyright */}
               <div className="flex items-center gap-3">
-              <div className="relative">
-                    <svg className="w-10 h-8 text-green-600 transform group-hover:scale-110 transition-transform duration-300" 
-                         viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 12L8 8L12 12L16 8L20 12" 
-                            stroke="currentColor" strokeWidth="2.5" 
-                            strokeLinecap="round" strokeLinejoin="round"
-                            className="group-hover:text-green-700 transition-colors"/>
-                      <path d="M4 16L8 12L12 16L16 12L20 16" 
-                            stroke="currentColor" strokeWidth="2.5" 
-                            strokeLinecap="round" strokeLinejoin="round"
-                            className="group-hover:text-green-500 transition-colors"/>
-                    </svg>
-                    <div className="absolute -inset-1 bg-green-100 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity"></div>
-                  </div>
+                <div className="relative">
+                  <svg className="w-10 h-8 text-green-600 transform group-hover:scale-110 transition-transform duration-300"
+                    viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 12L8 8L12 12L16 8L20 12"
+                      stroke="currentColor" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round"
+                      className="group-hover:text-green-700 transition-colors" />
+                    <path d="M4 16L8 12L12 16L16 12L20 16"
+                      stroke="currentColor" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round"
+                      className="group-hover:text-green-500 transition-colors" />
+                  </svg>
+                  <div className="absolute -inset-1 bg-green-100 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity"></div>
+                </div>
                 <span className="text-sm">
                   &copy; {new Date().getFullYear()} Cévennes Rando
                 </span>
@@ -541,7 +548,7 @@ export default function Home() {
             </div>
           </div>
         </footer>
-    </div>
+      </div>
     </main>
 
   );
