@@ -1,6 +1,6 @@
 import { HikeResult } from '@/types/search';
 import { cleanText, formatDuration } from '@/utils/text';
-import Image from 'next/image';
+// import Image from 'next/image';
 
 interface HikeModalProps {
   hike: HikeResult;
@@ -9,8 +9,8 @@ interface HikeModalProps {
 
 export default function HikeModal({ hike, onClose }: HikeModalProps) {
 
-  const repareUrl= (url:string)=>{
-    const rUrl= url.replace('https://geotrek-admin.cevennes-parcnational.net/', 'https://geotrek-admin.cevennes-parcnational.net/media/')
+  const repareUrl = (url: string) => {
+    const rUrl = url.replace('https://geotrek-admin.cevennes-parcnational.net/', 'https://geotrek-admin.cevennes-parcnational.net/media/')
     console.log(rUrl);
     return rUrl;
   }
@@ -43,8 +43,8 @@ export default function HikeModal({ hike, onClose }: HikeModalProps) {
                     <div className="bg-gray-50 rounded-xl p-6">
                       <h4 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
                         <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M9 5l7 7-7 7" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M9 5l7 7-7 7" />
                         </svg>
                         Pas à pas
                       </h4>
@@ -110,13 +110,20 @@ export default function HikeModal({ hike, onClose }: HikeModalProps) {
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         {hike.medias.filter(m => m.type_media === 'image').map((media, index) => (
                           <div key={index} className="relative aspect-video">
-                            <Image 
+                            {/* <Image
                               src={repareUrl(media.url)}
                               alt={media.legende || ''}
                               width={800}
                               height={600}
                               className="w-full h-auto"
-                            />
+                            /> */}
+                            <picture>
+                              <img
+                              src={repareUrl(media.url)}
+                              alt={media.legende || ''}
+                              className="object-cover   "
+                              />
+                            </picture>
                             {media.legende && (
                               <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2">
                                 {media.legende}
