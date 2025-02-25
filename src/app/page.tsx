@@ -70,7 +70,7 @@ export default function Home() {
         {/* Barre supérieure avec gradient et effet glassmorphism */}
         <div className="h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-600"></div>
 
-        <nav className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-100">
+        <nav className="bg-white/90   shadow-lg border-b border-gray-100">
           <div className="max-w-7xl mx-auto">
             {/* Barre principale */}
             <div className="px-4 h-20 flex items-center justify-between">
@@ -89,7 +89,7 @@ export default function Home() {
                         strokeLinecap="round" strokeLinejoin="round"
                         className="group-hover:text-green-500 transition-colors" />
                     </svg>
-                    <div className="absolute -inset-1 bg-green-100 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity"></div>
+                    <div className="absolute -inset-1 bg-green-100 rounded-full   opacity-0 group-hover:opacity-30 transition-opacity"></div>
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent
@@ -183,7 +183,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20
+            <div className="bg-white/95  rounded-2xl shadow-2xl p-8 border border-white/20
                           transform hover:scale-[1.02] transition-all duration-300">
               {/* Exemples de requêtes */}
               <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -477,7 +477,7 @@ export default function Home() {
             {/* Overlay sombre quand le panneau est ouvert sur mobile */}
             {isPanelVisible && (
               <div
-                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20 md:hidden"
+                className="fixed inset-0 bg-black/30  z-20 md:hidden"
                 onClick={() => setIsPanelVisible(false)}
               />
             )}
@@ -526,7 +526,7 @@ export default function Home() {
                       strokeLinecap="round" strokeLinejoin="round"
                       className="group-hover:text-green-500 transition-colors" />
                   </svg>
-                  <div className="absolute -inset-1 bg-green-100 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity"></div>
+                  <div className="absolute -inset-1 bg-green-100 rounded-full   opacity-0 group-hover:opacity-30 transition-opacity"></div>
                 </div>
                 <span className="text-sm">
                   &copy; {new Date().getFullYear()} Cévennes Rando

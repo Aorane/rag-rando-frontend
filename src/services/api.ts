@@ -6,13 +6,15 @@ export async function searchHikes(query: string): Promise<SearchResponse> {
   try {
     console.log(`query:`, query);
 
-    const response = await fetch(`${API_BASE_URL}/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query }),
+    // Encodage des paramètres dans l'URL
+    const encodedQuery = encodeURIComponent(query);
+    const url = `${API_BASE_URL}/api/search/?q=${encodedQuery}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      // Les en-têtes Content-Type et le corps ne sont plus nécessaires en GET
     });
+    
     console.log(`response:`, response);
 
     if (!response.ok) {
@@ -24,4 +26,4 @@ export async function searchHikes(query: string): Promise<SearchResponse> {
     console.error('Erreur lors de la recherche:', error);
     throw error;
   }
-} 
+}
