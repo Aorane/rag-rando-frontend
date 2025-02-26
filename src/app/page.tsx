@@ -5,8 +5,9 @@ import { useState, useRef, useEffect } from 'react';
 import CevennesMap from '@/components/Map';
 import HikeCard from '@/components/HikeCard';
 import HikeModal from '@/components/HikeModal';
+import ChatInterface from '@/components/ChatInterface';
 import { searchHikes } from '@/services/api';
-import type { SearchResponse, HikeResult } from '@/types/search';
+import type { SearchResponse, HikeResult, Message } from '@/types/search';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,20 +17,93 @@ export default function Home() {
   const [selectedHike, setSelectedHike] = useState<HikeResult | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [isUserScrolling,] = useState(false);
-  const [activeTab, setActiveTab] = useState("synthese");
+  const [activeTab, setActiveTab] = useState("chat");
   const [isPanelVisible, setIsPanelVisible] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Message[]>([
+    { role: 'assistant', content: 'Bonjour ! Je suis votre assistant de randonnée dans les Cévennes. Comment puis-je vous aider aujourd\'hui ?' }
+  ]);
+  const [context, setContext] = useState<Record<string, unknown>>({});
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) return;
 
     setIsSearching(true);
+    setSearchQuery(query);
 
     try {
-      const results = await searchHikes(searchQuery);
+      const results = await searchHikes(query, chatMessages, context);
       setSearchResults(results);
-      console.log('============>', results)
+      // Si c'est la première requête, stocker l'ID de conversation
+      if (!context && results.context) {
+        setContext(results.context);
+      }
     } catch (err) {
-      console.error("Une erreur s&apos;est produite lors de la recherche. Veuillez réessayer.", err);
+      console.error("Une erreur s'est produite lors de la recherche.", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSendMessage = async (message: string) => {
+    // Ajouter le message de l'utilisateur au chat
+    const updatedMessages = [
+      ...chatMessages, 
+      { role: 'user', content: message }
+    ];
+    
+    setChatMessages(updatedMessages as Message[]);
+    setIsSearching(true);
+    
+    try {
+      // Lancer la recherche avec tous les messages et le contexte
+      const results = await searchHikes(message, updatedMessages as Message[], context);
+      
+      // Mettre à jour les résultats
+      setSearchResults(results);
+      
+      // Stocker le nouveau contexte
+      setContext(results.context || {});
+      
+      // Extraire le message de réponse formaté pour l'affichage
+      let responseMessage = "";
+      
+      if (results.response && typeof results.response === 'object' && results.response.summary) {
+        // Extraction du titre et de l'interprétation
+        const { title, interpretation } = results.response.summary;
+        responseMessage = `**${title}**\n\n${interpretation}`;
+        
+        // Ajouter des points principaux s'ils existent
+        if (results.response.analysis && results.response.analysis.main_points && 
+            results.response.analysis.main_points.length > 0) {
+          responseMessage += "\n\n**Points principaux :**\n";
+          results.response.analysis.main_points.forEach((point, i) => {
+            responseMessage += `\n${i+1}. ${point}`;
+          });
+        }
+      } else if (typeof results.response === 'string') {
+        // Si la réponse est une chaîne directe
+        responseMessage = results.response;
+      } else {
+        // Message par défaut
+        responseMessage = "J'ai trouvé quelques randonnées qui pourraient vous intéresser.";
+      }
+      
+      // Utiliser uniquement les messages de l'API si c'est un tableau
+      if (results.messages && Array.isArray(results.messages)) {
+        setChatMessages(results.messages);
+      } else {
+        // Ajouter la réponse formatée aux messages
+        setChatMessages([...updatedMessages, { 
+          role: 'assistant', 
+          content: responseMessage
+        }]);
+      }
+    } catch (err) {
+      console.error("Une erreur s'est produite lors de la recherche.", err);
+      setChatMessages([...updatedMessages, { 
+        role: 'assistant', 
+        content: "Désolé, j'ai rencontré un problème lors de la recherche. Veuillez réessayer." 
+      }]);
     } finally {
       setIsSearching(false);
     }
@@ -64,88 +138,89 @@ export default function Home() {
   }, [hoveredTrailId, isUserScrolling, scrollToHike]);
 
   return (
-    <main className="min-h-screen bg-gray-50  ">
+    <main className="min-h-screen bg-gray-50">
       {/* Header Navigation - Design amélioré et plus impactant */}
-      <header className="absolute top-0 left-0 right-0 z-50">
+      <header className="sticky top-0 left-0 right-0 z-50 bg-white/90 shadow-lg border-b border-gray-100">
         {/* Barre supérieure avec gradient et effet glassmorphism */}
         <div className="h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-600"></div>
 
-        <nav className="bg-white/90   shadow-lg border-b border-gray-100">
-          <div className="max-w-7xl mx-auto">
-            {/* Barre principale */}
-            <div className="px-4 h-20 flex items-center justify-between">
-              {/* Logo et Nom */}
-              <div className="flex items-center space-x-8">
-                <div className="flex items-center gap-3 group cursor-pointer">
-                  <div className="relative">
-                    <svg className="w-10 h-10 text-green-600 transform group-hover:scale-110 transition-transform duration-300"
-                      viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 12L8 8L12 12L16 8L20 12"
-                        stroke="currentColor" strokeWidth="2.5"
-                        strokeLinecap="round" strokeLinejoin="round"
-                        className="group-hover:text-green-700 transition-colors" />
-                      <path d="M4 16L8 12L12 16L16 12L20 16"
-                        stroke="currentColor" strokeWidth="2.5"
-                        strokeLinecap="round" strokeLinejoin="round"
-                        className="group-hover:text-green-500 transition-colors" />
-                    </svg>
-                    <div className="absolute -inset-1 bg-green-100 rounded-full   opacity-0 group-hover:opacity-30 transition-opacity"></div>
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent
-                                  group-hover:from-green-800 group-hover:to-green-600 transition-all duration-300">
-                      Cévennes Rando
-                    </h1>
-                    <span className="text-xs text-gray-500 hidden sm:block">Explorez les sentiers</span>
-                  </div>
-                </div>
-
-                {/* Navigation principale */}
-                <div className="hidden md:flex space-x-1">
-                  {['Explorer', 'Secteurs', 'Carte IGN'].map((item) => (
-                    <button key={item}
-                      className="px-4 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50
-                                transition-all duration-200 flex items-center gap-2 relative group">
-                      <span className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Actions utilisateur */}
-              <div className="flex items-center space-x-4">
-                {/* Bouton Connexion */}
-                <button className="px-4 py-2 text-gray-600 hover:text-green-700 transition-colors duration-200
-                                 flex items-center gap-2 rounded-lg hover:bg-green-50">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span className="hidden sm:inline">Connexion</span>
-                </button>
-
-                {/* Bouton Inscription */}
-                <button className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg
-                                 hover:from-green-700 hover:to-green-600 transition-all duration-300
-                                 shadow-md hover:shadow-lg transform hover:scale-105
-                                 flex items-center gap-2 relative group">
-                  <span className="absolute inset-0 bg-white rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                  <span className="hidden sm:inline">S&apos;inscrire</span>
-                </button>
-
-                {/* Menu mobile */}
-                <button className="md:hidden p-2 text-gray-600 hover:text-green-700 transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-              </div>
+        <nav className="h-16 px-4 flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 group cursor-pointer">
+            <div className="relative">
+              <svg className="w-8 h-8 text-green-600 transform group-hover:scale-110 transition-transform duration-300"
+                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12L8 8L12 12L16 8L20 12"
+                  stroke="currentColor" strokeWidth="2.5"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  className="group-hover:text-green-700 transition-colors" />
+                <path d="M4 16L8 12L12 16L16 12L20 16"
+                  stroke="currentColor" strokeWidth="2.5"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  className="group-hover:text-green-500 transition-colors" />
+              </svg>
+              <div className="absolute -inset-1 bg-green-100 rounded-full   opacity-0 group-hover:opacity-30 transition-opacity"></div>
             </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
+              Cévennes Rando
+            </h1>
+          </div>
+
+          {/* Navigation principale */}
+          <div className="hidden md:flex space-x-1">
+            <button
+              onClick={() => setActiveTab('chat')}
+              className="px-4 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50
+                        transition-all duration-200 flex items-center gap-2 relative group">
+              <span className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
+              Chat
+            </button>
+            <button
+              onClick={() => setActiveTab('results')}
+              className="px-4 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50
+                        transition-all duration-200 flex items-center gap-2 relative group">
+              <span className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
+              Résultats
+            </button>
+            <button
+              onClick={() => setActiveTab('map')}
+              className="px-4 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50
+                        transition-all duration-200 flex items-center gap-2 relative group">
+              <span className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
+              Carte
+            </button>
+          </div>
+
+          {/* Actions utilisateur */}
+          <div className="flex items-center space-x-4">
+            {/* Bouton Connexion */}
+            <button className="px-4 py-2 text-gray-600 hover:text-green-700 transition-colors duration-200
+                             flex items-center gap-2 rounded-lg hover:bg-green-50">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="hidden sm:inline">Connexion</span>
+            </button>
+
+            {/* Bouton Inscription */}
+            <button className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg
+                             hover:from-green-700 hover:to-green-600 transition-all duration-300
+                             shadow-md hover:shadow-lg transform hover:scale-105
+                             flex items-center gap-2 relative group">
+              <span className="absolute inset-0 bg-white rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              <span className="hidden sm:inline">S&apos;inscrire</span>
+            </button>
+
+            {/* Menu mobile */}
+            <button className="md:hidden p-2 text-gray-600 hover:text-green-700 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </nav>
       </header>
@@ -208,14 +283,14 @@ export default function Home() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                   placeholder="Ex: Je cherche une randonnée facile de 2h avec de beaux points de vue..."
                   className="w-full px-6 py-4 pr-14 rounded-xl border border-gray-200
                            focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
                            text-gray-700 placeholder-gray-400 shadow-inner bg-white"
                 />
                 <button
-                  onClick={handleSearch}
+                  onClick={() => handleSearch(searchQuery)}
                   disabled={isSearching}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-green-600 text-white 
                            rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400
@@ -274,7 +349,6 @@ export default function Home() {
                 <div className="flex justify-center py-2">
                   <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
                 </div>
-
               </div>
             </div>
 
@@ -361,26 +435,26 @@ export default function Home() {
                 {/* Onglets */}
                 <div className="flex border-b border-gray-200 bg-white">
                   <button
-                    onClick={() => setActiveTab('synthese')}
+                    onClick={() => setActiveTab('chat')}
                     className={`flex-1 py-3 text-sm font-medium relative transition-colors duration-200
-                               ${activeTab === 'synthese'
+                               ${activeTab === 'chat'
                         ? 'text-green-600'
                         : 'text-gray-500 hover:text-gray-700'}`}
                   >
-                    Synthèse
-                    {activeTab === 'synthese' && (
+                    Chat
+                    {activeTab === 'chat' && (
                       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600" />
                     )}
                   </button>
                   <button
-                    onClick={() => setActiveTab('liste')}
+                    onClick={() => setActiveTab('results')}
                     className={`flex-1 py-3 text-sm font-medium relative transition-colors duration-200
-                               ${activeTab === 'liste'
+                               ${activeTab === 'results'
                         ? 'text-green-600'
                         : 'text-gray-500 hover:text-gray-700'}`}
                   >
-                    Liste
-                    {activeTab === 'liste' && (
+                    Résultats
+                    {activeTab === 'results' && (
                       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600" />
                     )}
                   </button>
@@ -389,76 +463,28 @@ export default function Home() {
                 {/* Contenu des onglets */}
                 <div className="flex-1 overflow-hidden relative bg-gray-50">
                   <div className={`absolute inset-0 transition-transform duration-300 ease-in-out overflow-y-auto
-                                  ${activeTab === 'synthese' ? 'translate-x-0' : '-translate-x-full'}`}>
-                    {/* Contenu Synthèse */}
-                    {searchResults?.llm_response ? (
-                      <div className="p-4 space-y-6 ">
-                        <div className="space-y-3 ">
-                          <h4 className="text-lg font-medium text-gray-800">
-                            {searchResults.llm_response.summary.title}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {searchResults.llm_response.summary.interpretation}
-                          </p>
-                          <p className="text-sm text-gray-600">ffffffffffff
-                            {searchResults.llm_response.summary.comparaison}
-                          </p>
-                          <div className="inline-block px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
-                            {searchResults.llm_response.summary.results_count}
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h5 className="font-medium text-gray-700">Points clés</h5>
-                          <ul className="space-y-2">
-                            {searchResults.llm_response.analysis.main_points.map((point, index) => (
-                              <li key={index} className="flex gap-2 text-sm text-gray-600">
-                                <span className="text-green-600">•</span>
-                                {point}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h5 className="font-medium text-gray-700">Suggestions</h5>
-                          <ul className="space-y-2">
-                            {searchResults.llm_response.analysis.suggestions.map((suggestion, index) => (
-                              <li key={index} className="flex gap-2 text-sm text-gray-600 items-start">
-                                <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                                {suggestion}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="space-y-3">
-                          <h5 className="font-medium text-gray-700">Randonnées suggérées</h5>
-                          <div className="space-y-3">
-                            {searchResults.llm_response.highlights.map((highlight, index) => (
-                              <div
-                                key={index}
-                                className="p-3 bg-gray-50 rounded-lg hover:bg-green-50 transition-colors cursor-pointer"
-                                onMouseEnter={() => setHoveredTrailId(highlight.id)}
-                                onMouseLeave={() => setHoveredTrailId(null)}
-                              >
-                                <p className="text-sm text-gray-600">{highlight.text}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-4 text-gray-500 italic">Aucune synthèse disponible</div>
-                    )}
+                                  ${activeTab === 'chat' ? 'translate-x-0' : '-translate-x-full'}`}>
+                    {/* Contenu Chat */}
+                    <ChatInterface 
+                      messages={chatMessages}
+                      onSendMessage={handleSendMessage}
+                      isLoading={isSearching}
+                    />
                   </div>
 
                   <div className={`absolute inset-0 transition-transform duration-300 ease-in-out
-                                  ${activeTab === 'liste' ? 'translate-x-0' : 'translate-x-full'}`}>
-                    {/* Contenu Liste */}
-                    <div className="overflow-y-auto h-full p-2">
+                                  ${activeTab === 'results' ? 'translate-x-0' : 'translate-x-full'}`}>
+                    {/* Contenu Résultats */}
+                    <div className="p-4 sticky top-0 bg-white border-b z-10">
+                      <h2 className="text-lg font-semibold text-gray-800">Randonnées suggérées</h2>
+                      {searchResults && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          {searchResults.results.length} résultats trouvés
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="p-2">
                       {searchResults?.results.map((hike) => (
                         <HikeCard
                           key={hike.id_local}
@@ -468,6 +494,18 @@ export default function Home() {
                           isHighlighted={hoveredTrailId === hike.id_local}
                         />
                       ))}
+                      
+                      {searchResults && searchResults.results.length === 0 && (
+                        <div className="p-4 text-center text-gray-500">
+                          Aucune randonnée trouvée. Essayez de modifier vos critères.
+                        </div>
+                      )}
+                      
+                      {!searchResults && (
+                        <div className="p-4 text-center text-gray-500">
+                          Utilisez le chat pour trouver des randonnées adaptées à vos envies.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -550,6 +588,5 @@ export default function Home() {
         </footer>
       </div>
     </main>
-
   );
 }

@@ -1,26 +1,43 @@
 export interface SearchResponse {
-  interpreted_params: {
+  results: HikeResult[];
+  messages: Message[];
+  response: {
+    summary: {
+      title: string;
+      interpretation: string;
+      comparaison?: string;
+      results_count?: string | number;
+    };
+    analysis: {
+      main_points: string[];
+      suggestions: string[];
+    };
+    highlights: {
+      id: string;
+      text: string;
+    }[];
+  } | string;
+  map_data?: {
+    type: string;
+    features: Array<{
+      type: string;
+      geometry: {
+        type: string;
+        coordinates: number[][];
+      };
+      properties: Record<string, unknown>;
+    }>;
+  };
+  context: Record<string, unknown>;
+  search_params?: {
     semantic_text: string;
-    location: {
+    location?: {
       lat: number;
       lon: number;
-    } | null;
-    distance: number;
-    filters: {
-      longueur: number | { min: number; max: number } | null;
-      difficulte: string | null;
-      pratique: string | null;
-      note_minimum: number | null;
-      accessibilite: {
-        pmr: boolean | null;
-        poussette: boolean | null;
-      };
-      saison: string | null;
     };
+    distance?: number;
+    filters?: Record<string, unknown>;
   };
-  results: HikeResult[];
-  llm_response: LLMResponse;
-  context: Record<string, unknown>;
   metadata: {
     total: number;
     time: number;
@@ -115,4 +132,10 @@ export type LLMResponse = {
     id: string;
     text: string;
   }[];
-}; 
+};
+
+export interface Message {
+  role: 'user' | 'system' | 'assistant';
+  content: string;
+  timestamp?: string;
+} 
