@@ -408,7 +408,7 @@ export default function Home() {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                           <h5 className="font-medium text-gray-700">Points clés</h5>
                           <ul className="space-y-2">
                             {searchResults.llm_response.analysis.main_points.map((point, index) => (
@@ -418,8 +418,8 @@ export default function Home() {
                               </li>
                             ))}
                           </ul>
-                        </div>
-
+                        </div> */}
+{/* 
                         <div className="space-y-2">
                           <h5 className="font-medium text-gray-700">Suggestions</h5>
                           <ul className="space-y-2">
@@ -432,7 +432,7 @@ export default function Home() {
                               </li>
                             ))}
                           </ul>
-                        </div>
+                        </div> */}
 
                         <div className="space-y-3">
                           <h5 className="font-medium text-gray-700">Randonnées suggérées</h5>
