@@ -48,15 +48,15 @@ export default function Home() {
     // Ajouter le message de l'utilisateur au chat
     const updatedMessages = [
       ...chatMessages, 
-      { role: 'user', content: message }
+      { role: 'user' as const, content: message }
     ];
     
-    setChatMessages(updatedMessages as Message[]);
+    setChatMessages(updatedMessages);
     setIsSearching(true);
     
     try {
       // Lancer la recherche avec tous les messages et le contexte
-      const results = await searchHikes(message, updatedMessages as Message[], context);
+      const results = await searchHikes(message, updatedMessages, context);
       
       // Mettre à jour les résultats
       setSearchResults(results);
@@ -68,40 +68,34 @@ export default function Home() {
       let responseMessage = "";
       
       if (results.response && typeof results.response === 'object' && results.response.summary) {
-        // Extraction du titre et de l'interprétation
-        const { title, interpretation } = results.response.summary;
-        responseMessage = `**${title}**\n\n${interpretation}`;
-        
-        // Ajouter des points principaux s'ils existent
-        if (results.response.analysis && results.response.analysis.main_points && 
-            results.response.analysis.main_points.length > 0) {
-          responseMessage += "\n\n**Points principaux :**\n";
-          results.response.analysis.main_points.forEach((point, i) => {
-            responseMessage += `\n${i+1}. ${point}`;
-          });
-        }
+        // Utiliser directement l'objet response pour l'affichage
+        const assistantMessage: Message = { 
+          role: 'assistant' as const, 
+          content: results.response 
+        };
+        setChatMessages([...updatedMessages, assistantMessage]);
       } else if (typeof results.response === 'string') {
         // Si la réponse est une chaîne directe
         responseMessage = results.response;
+        setChatMessages([...updatedMessages, { 
+          role: 'assistant' as const, 
+          content: responseMessage
+        }]);
+      } else if (Array.isArray(results.messages) && results.messages.length > 0) {
+        // Utiliser uniquement les messages de l'API s'ils existent
+        setChatMessages(results.messages);
       } else {
         // Message par défaut
         responseMessage = "J'ai trouvé quelques randonnées qui pourraient vous intéresser.";
-      }
-      
-      // Utiliser uniquement les messages de l'API si c'est un tableau
-      if (results.messages && Array.isArray(results.messages)) {
-        setChatMessages(results.messages);
-      } else {
-        // Ajouter la réponse formatée aux messages
         setChatMessages([...updatedMessages, { 
-          role: 'assistant', 
+          role: 'assistant' as const, 
           content: responseMessage
         }]);
       }
     } catch (err) {
       console.error("Une erreur s'est produite lors de la recherche.", err);
       setChatMessages([...updatedMessages, { 
-        role: 'assistant', 
+        role: 'assistant' as const, 
         content: "Désolé, j'ai rencontré un problème lors de la recherche. Veuillez réessayer." 
       }]);
     } finally {
@@ -138,200 +132,17 @@ export default function Home() {
   }, [hoveredTrailId, isUserScrolling, scrollToHike]);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className=" h-screen">
       {/* Header Navigation - Design amélioré et plus impactant */}
-      <header className="sticky top-0 left-0 right-0 z-50 bg-white/90 shadow-lg border-b border-gray-100">
-        {/* Barre supérieure avec gradient et effet glassmorphism */}
-        <div className="h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-600"></div>
-
-        <nav className="h-16 px-4 flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="relative">
-              <svg className="w-8 h-8 text-green-600 transform group-hover:scale-110 transition-transform duration-300"
-                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 12L8 8L12 12L16 8L20 12"
-                  stroke="currentColor" strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round"
-                  className="group-hover:text-green-700 transition-colors" />
-                <path d="M4 16L8 12L12 16L16 12L20 16"
-                  stroke="currentColor" strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round"
-                  className="group-hover:text-green-500 transition-colors" />
-              </svg>
-              <div className="absolute -inset-1 bg-green-100 rounded-full   opacity-0 group-hover:opacity-30 transition-opacity"></div>
-            </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
-              Cévennes Rando
-            </h1>
-          </div>
-
-          {/* Navigation principale */}
-          <div className="hidden md:flex space-x-1">
-            <button
-              onClick={() => setActiveTab('chat')}
-              className="px-4 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50
-                        transition-all duration-200 flex items-center gap-2 relative group">
-              <span className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
-              Chat
-            </button>
-            <button
-              onClick={() => setActiveTab('results')}
-              className="px-4 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50
-                        transition-all duration-200 flex items-center gap-2 relative group">
-              <span className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
-              Résultats
-            </button>
-            <button
-              onClick={() => setActiveTab('map')}
-              className="px-4 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50
-                        transition-all duration-200 flex items-center gap-2 relative group">
-              <span className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
-              Carte
-            </button>
-          </div>
-
-          {/* Actions utilisateur */}
-          <div className="flex items-center space-x-4">
-            {/* Bouton Connexion */}
-            <button className="px-4 py-2 text-gray-600 hover:text-green-700 transition-colors duration-200
-                             flex items-center gap-2 rounded-lg hover:bg-green-50">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="hidden sm:inline">Connexion</span>
-            </button>
-
-            {/* Bouton Inscription */}
-            <button className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg
-                             hover:from-green-700 hover:to-green-600 transition-all duration-300
-                             shadow-md hover:shadow-lg transform hover:scale-105
-                             flex items-center gap-2 relative group">
-              <span className="absolute inset-0 bg-white rounded-lg opacity-0 group-hover:opacity-10 transition-opacity"></span>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-              <span className="hidden sm:inline">S&apos;inscrire</span>
-            </button>
-
-            {/* Menu mobile */}
-            <button className="md:hidden p-2 text-gray-600 hover:text-green-700 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </nav>
+      <header className="flex m-auto">
+ 
       </header>
 
       {/* Main Content avec Hero amélioré */}
-      <div className="pt-20">
-        <section className="relative h-[100vh] flex items-center justify-center overflow-hidden">
-          {/* Overlay d'image avec parallax */}
-          <div className="absolute inset-0">
-            <picture>
-              <img
-                src="/mountains2.jpg"
-                alt="Paysage des Cévennes "
-                className="object-cover transform scale-105 motion-safe:animate-subtle-zoom"
-              />
-            </picture>
-            {/* <Image
-              src="/mountains3.jpg"
-              alt="Paysage des Cévennes"
-              fill
-              className="object-cover transform scale-105 motion-safe:animate-subtle-zoom"
-              priority
-            /> */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-transparent" />
-          </div>
-
-          {/* Contenu Hero */}
-          <div className="relative z-10 max-w-4xl w-full mx-4 space-y-8 transform motion-safe:animate-fade-in">
-            <div className="text-center text-white space-y-4">
-              <h2 className="text-5xl font-bold text-shadow-lg">
-                La randonnée en langage naturel
-              </h2>
-              <p className="text-xl text-shadow max-w-2xl mx-auto">
-                Décrivez votre randonnée idéale comme vous le feriez à un ami. Notre IA comprend et trouve les meilleurs parcours.
-              </p>
-            </div>
-
-            <div className="bg-white/95  rounded-2xl shadow-2xl p-8 border border-white/20
-                          transform hover:scale-[1.02] transition-all duration-300">
-              {/* Exemples de requêtes */}
-              <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {[
-                  "Randonnée de 3h max avec des cascades",
-                  "Circuit panoramique de 4h max",
-                  "Balade familiale près du Mont Aigoual"
-                ].map((exemple, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSearchQuery(exemple)}
-                    className="px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded-full 
-                             hover:bg-green-100 transition-colors whitespace-nowrap"
-                  >
-                    {exemple}
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                  placeholder="Ex: Je cherche une randonnée facile de 2h avec de beaux points de vue..."
-                  className="w-full px-6 py-4 pr-14 rounded-xl border border-gray-200
-                           focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
-                           text-gray-700 placeholder-gray-400 shadow-inner bg-white"
-                />
-                <button
-                  onClick={() => handleSearch(searchQuery)}
-                  disabled={isSearching}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-green-600 text-white 
-                           rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400
-                           disabled:cursor-not-allowed group"
-                >
-                  {isSearching ? (
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <svg className="w-6 h-6 transform group-hover:rotate-6 transition-transform"
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-
-              {/* Suggestions d'utilisation */}
-              <div className="mt-4 text-sm text-gray-500">
-                <p className="font-medium mb-2">Essayez d&apos;être précis :</p>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    &quot;Randonnée de 3h max avec des ruisseaux&quot;
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    &quot;Circuit ombragé pour l&apos;été avec pique&quot;nique&quot;
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
+      <div className="h-full content-center  ">
 
         {/* Section principale avec Map et Résultats */}
-        <section className="min-h-screen relative">
+        <section className=" h-[80vh] relative">
           {/* Grille responsive */}
           <div className="grid grid-cols-1 md:grid-cols-12 h-full">
             {/* Indicateur de panneau glissant sur mobile */}
@@ -359,78 +170,15 @@ export default function Home() {
                 bg-white md:bg-transparent
                 transform transition-transform duration-300 ease-in-out
                 ${isPanelVisible ? 'translate-y-0' : 'translate-y-[92%] md:translate-y-0'}
-                h-[92vh] md:h-full flex flex-col
+                  h-full flex flex-col
                 rounded-t-2xl md:rounded-none  md:shadow-none 
               `}
             >
-              {/* Poignée de glissement sur mobile */}
-              <div
-                className="h-10 flex flex-col items-center justify-center md:hidden bg-white rounded-t-2xl cursor-grab active:cursor-grabbing touch-handle "
-                onTouchStart={() => setIsPanelVisible(!isPanelVisible)}
-              >
-                <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-              </div>
+ 
 
               {/* Contenu du panneau */}
               <div className="flex-1 flex flex-col overflow-hidden bg-white shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px] ">
-                {/* En-tête avec logo et titre */}
-                {/* <div className="p-4 border-b border-gray-200 bg-white">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Résultats de la recherche</h2>
-                  
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      placeholder="Rechercher une randonnée..."
-                      className="w-full px-4 py-3 pl-10 pr-4 rounded-lg border border-gray-200
-                               focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
-                               transition-all duration-200 bg-gray-50"
-                    />
-                    <button
-                      onClick={handleSearch}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-green-600 text-white 
-                               rounded-md hover:bg-green-700 transition-colors"
-                    >
-                      {isSearching ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-
-                  <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
-                    <button className="inline-flex items-center px-3 py-1.5 bg-gray-50 hover:bg-gray-100 
-                                     rounded-full text-sm whitespace-nowrap transition-colors duration-200">
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                      </svg>
-                      Distance
-                    </button>
-                    <button className="inline-flex items-center px-3 py-1.5 bg-gray-50 hover:bg-gray-100 
-                                     rounded-full text-sm whitespace-nowrap transition-colors duration-200">
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                      Difficulté
-                    </button>
-                    <button className="inline-flex items-center px-3 py-1.5 bg-gray-50 hover:bg-gray-100 
-                                     rounded-full text-sm whitespace-nowrap transition-colors duration-200">
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Durée
-                    </button>
-                  </div>
-                </div> */}
+ 
 
                 {/* Onglets */}
                 <div className="flex border-b border-gray-200 bg-white">
@@ -547,44 +295,8 @@ export default function Home() {
         )}
 
         {/* Footer minimaliste */}
-        <footer className="bg-gray-800 text-gray-300 py-4">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              {/* Logo et copyright */}
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <svg className="w-10 h-8 text-green-600 transform group-hover:scale-110 transition-transform duration-300"
-                    viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 12L8 8L12 12L16 8L20 12"
-                      stroke="currentColor" strokeWidth="2.5"
-                      strokeLinecap="round" strokeLinejoin="round"
-                      className="group-hover:text-green-700 transition-colors" />
-                    <path d="M4 16L8 12L12 16L16 12L20 16"
-                      stroke="currentColor" strokeWidth="2.5"
-                      strokeLinecap="round" strokeLinejoin="round"
-                      className="group-hover:text-green-500 transition-colors" />
-                  </svg>
-                  <div className="absolute -inset-1 bg-green-100 rounded-full   opacity-0 group-hover:opacity-30 transition-opacity"></div>
-                </div>
-                <span className="text-sm">
-                  &copy; {new Date().getFullYear()} Cévennes Rando
-                </span>
-              </div>
-
-              {/* Liens essentiels */}
-              <div className="flex items-center gap-6 text-sm">
-                <a href="/mentions-legales" className="text-gray-400 hover:text-white transition-colors">
-                  Mentions légales
-                </a>
-                <a href="/confidentialite" className="text-gray-400 hover:text-white transition-colors">
-                  Confidentialité
-                </a>
-                <a href="/contact" className="text-gray-400 hover:text-white transition-colors">
-                  Contact
-                </a>
-              </div>
-            </div>
-          </div>
+        <footer className=" ">
+ 
         </footer>
       </div>
     </main>

@@ -14,7 +14,7 @@ export async function searchHikes(query: string, messages: Message[] = [], conte
       context
     };
     
-    const response = await fetch(`${API_BASE_URL}/api/talk/`, {
+    const response = await fetch(`${API_BASE_URL}/conversation/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

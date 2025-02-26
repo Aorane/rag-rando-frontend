@@ -298,7 +298,7 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
         </button>
       </div> */}
 
-      <div className="relative w-[full] h-[100vh] rounded-lg overflow-hidden shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px]">
+      <div className="relative w-[full] h-[80vh] rounded-lg overflow-hidden shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px]">
         <div ref={mapRef} className="w-full h-full shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px] " />
    
         <div 

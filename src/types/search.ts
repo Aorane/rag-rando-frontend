@@ -113,6 +113,34 @@ export interface HikeResult {
     licence?: string;
     type_media?: string;
   }>;
+
+  id_local: string;
+  nom_itineraire: string;
+  geometry: {
+    type: string;
+    coordinates: [number, number][];
+  };
+  departements: string[];
+  communes_nom: string[];
+  difficulte: string;
+  duree: number;
+  longueur: number;
+  denivele_positif: number;
+  denivele_negatif: number;
+  altitude_maximum: number;
+  altitude_minimum: number;
+  duree_text?: string;
+  description?: string;
+  recommandations?: string;
+  themes?: string[];
+  pratique: string;
+  accessibilite?: string;
+  reglementation?: string;
+  source?: string;
+  date_creation?: string;
+  date_modification?: string;
+  type_sol?: string[];
+  photo_couverture?: string;
 }
 
 // Ajout du type pour la nouvelle structure LLM
@@ -136,6 +164,6 @@ export type LLMResponse = {
 
 export interface Message {
   role: 'user' | 'system' | 'assistant';
-  content: string;
+  content: string | Record<string, any>;
   timestamp?: string;
 } 

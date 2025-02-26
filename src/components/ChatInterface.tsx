@@ -43,7 +43,7 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
               <div className="font-semibold">{content.summary.title}</div>
               <div>{content.summary.interpretation}</div>
               
-              {/* {content.analysis?.main_points && content.analysis.main_points.length > 0 && (
+              {content.analysis?.main_points && content.analysis.main_points.length > 0 && (
                 <div className="mt-2">
                   <div className="font-medium">Points principaux :</div>
                   <ul className="list-disc pl-4 mt-1 space-y-1">
@@ -52,7 +52,7 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
                     ))}
                   </ul>
                 </div>
-              )} */}
+              )}
               
               {content.highlights && content.highlights.length > 0 && (
                 <div className="mt-2">
@@ -67,42 +67,46 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
             </div>
           );
         }
-        // Si c'est un autre type d'objet, on le convertit en JSON
-        console.log('autre type d\'objet', content);
-        
-        return <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(content, null, 2)}</pre>;
+        // Si c'est un autre type d'objet, on affiche uniquement les informations pertinentes
+        return (
+          <div className="text-sm">
+            {typeof content === 'string' ? content : "J'ai trouvé des randonnées qui pourraient vous intéresser."}
+          </div>
+        );
       } catch (e) {
-        return String(content);
+        return <div className="text-sm">Informations de randonnée disponibles</div>;
       }
     }
     
     // Pour le markdown simple (titres, listes)
     if (typeof content === 'string') {
       // Conversion basique du markdown
-      return content
-        .split('\n')
-        .map((line, i) => {
-          // Titres
-          if (line.startsWith('**') && line.endsWith('**')) {
-            return <div key={i} className="font-bold">{line.slice(2, -2)}</div>;
-          }
-          // Points de liste numérotés
-          if (/^\d+\.\s/.test(line)) {
-            return <div key={i} className="ml-4">• {line.replace(/^\d+\.\s/, '')}</div>;
-          }
-          // Lignes normales
-          return line ? <div key={i}>{line}</div> : <br key={i} />;
-        });
+      return (
+        <div className="space-y-1">
+          {content.split('\n').map((line, i) => {
+            // Titres
+            if (line.startsWith('**') && line.endsWith('**')) {
+              return <div key={i} className="font-bold">{line.slice(2, -2)}</div>;
+            }
+            // Points de liste numérotés
+            if (/^\d+\.\s/.test(line)) {
+              return <div key={i} className="ml-4">• {line.replace(/^\d+\.\s/, '')}</div>;
+            }
+            // Lignes normales
+            return line ? <div key={i}>{line}</div> : <br key={i} />;
+          })}
+        </div>
+      );
     }
     
     // Valeur par défaut
-    return String(content);
+    return <div className="text-sm">Message reçu</div>;
   };
 
   return (
     <div className="flex flex-col h-full">
       {/* Zone de messages */}
-      <div className="flex-1 overflow-y-scroll p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
         {messages.map((msg, index) => (
           <div 
             key={index} 
