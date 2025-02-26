@@ -270,42 +270,53 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
   }, [hikingPoints, hoveredTrailId]);
 
   return (
-    <div className="space-y-4  ">
-      {/* <div className="relative p-2">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && searchLocation()}
-          placeholder="Rechercher une ville..."
-          className="w-[80%] px-4 py-2 rounded-lg border border-gray-300  m-4
-                   focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        />
-        <button
-          onClick={searchLocation}
-          disabled={isSearching}
-          className="absolute right-2 top-1/2 -translate-y-1/2
-                   p-2 text-gray-600 hover:text-gray-900
-                   disabled:text-gray-400 disabled:cursor-not-allowed"
+    <div className="h-full relative">
+      <div className="absolute inset-0">
+        <div ref={mapRef} className="w-full h-full" />
+      </div>
+      
+      <div 
+        ref={tooltipRef}
+        className="absolute hidden bg-white px-3 py-1.5 rounded-lg shadow-lg text-sm 
+                 border border-gray-200 pointer-events-none z-10"
+      />
+      
+      {/* Contrôles supplémentaires */}
+      <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+        <button 
+          className="w-8 h-8 bg-white rounded-md shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50"
+          onClick={() => {
+            if (mapInstanceRef.current) {
+              const view = mapInstanceRef.current.getView();
+              const zoom = view.getZoom() || 1;
+              view.animate({
+                zoom: zoom + 1,
+                duration: 250
+              });
+            }
+          }}
         >
-          {isSearching ? (
-            <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          )}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
         </button>
-      </div> */}
-
-      <div className="relative w-[full] h-[80vh] rounded-lg overflow-hidden shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px]">
-        <div ref={mapRef} className="w-full h-full shadow-[rgba(0,0,15,0.5)_5px_5px_4px_0px] " />
-   
-        <div 
-          ref={tooltipRef}
-          className="absolute hidden bg-white px-3 py-1.5 rounded-lg   text-sm 
-                     border border-gray-200 pointer-events-none z-10 "
-        />
+        <button 
+          className="w-8 h-8 bg-white rounded-md shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50"
+          onClick={() => {
+            if (mapInstanceRef.current) {
+              const view = mapInstanceRef.current.getView();
+              const zoom = view.getZoom() || 1;
+              view.animate({
+                zoom: zoom - 1,
+                duration: 250
+              });
+            }
+          }}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+          </svg>
+        </button>
       </div>
     </div>
   );

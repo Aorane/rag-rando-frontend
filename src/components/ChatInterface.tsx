@@ -104,19 +104,19 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Zone de messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+    <div className="flex flex-col h-full bg-white">
+      {/* Zone de messages avec meilleur styling */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar bg-gray-50">
         {messages.map((msg, index) => (
           <div 
             key={index} 
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div 
-              className={`max-w-[80%] p-3 rounded-lg ${
+              className={`max-w-[85%] p-3 rounded-lg ${
                 msg.role === 'user' 
-                  ? 'bg-green-600 text-white rounded-br-none' 
-                  : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                  ? 'bg-gradient-to-br from-green-500 to-green-600 text-white rounded-br-none shadow-[0_3px_6px_rgba(0,0,0,0.2),_0_1px_0_rgba(255,255,255,0.2)_inset]' 
+                  : 'bg-white text-gray-800 rounded-bl-none border border-gray-200 shadow-[0_3px_6px_rgba(0,0,0,0.1),_0_1px_0_rgba(255,255,255,1)_inset,_0_-1px_0_rgba(0,0,0,0.05)_inset]'
               }`}
             >
               {renderMessageContent(msg.content)}
@@ -124,20 +124,36 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
           </div>
         ))}
         <div ref={messagesEndRef} />
+        
+        {/* Indicateur de chargement */}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-white text-gray-800 rounded-lg shadow-[0_3px_6px_rgba(0,0,0,0.1),_0_1px_0_rgba(255,255,255,1)_inset] border border-gray-200 p-3 max-w-[85%]">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-3 h-3 bg-green-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-3 h-3 bg-green-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Suggestions pour démarrer la conversation */}
       {messages.length <= 1 && (
-        <div className="p-4 border-t border-gray-200">
-          <p className="text-sm text-gray-500 mb-2">Suggestions :</p>
+        <div className="p-3 border-t border-gray-200 bg-gray-50">
+          <p className="text-xs text-gray-500 mb-2 font-medium">Suggestions:</p>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
                 onClick={() => onSendMessage(suggestion)}
                 disabled={isLoading}
-                className="px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded-full 
-                         hover:bg-green-50 hover:text-green-700 transition-colors"
+                className="px-3 py-1.5 text-xs bg-white text-gray-700 rounded-full 
+                         shadow-[0_2px_4px_rgba(0,0,0,0.1),_0_1px_0_rgba(255,255,255,1)_inset] 
+                         border border-gray-200
+                         hover:bg-green-50 hover:text-green-700 hover:border-green-200 
+                         transition-colors"
               >
                 {suggestion}
               </button>
@@ -147,7 +163,7 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
       )}
       
       {/* Formulaire d'entrée */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
+      <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 bg-white">
         <div className="relative">
           <input
             type="text"
@@ -155,20 +171,23 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
             onChange={(e) => setInput(e.target.value)}
             placeholder="Décrivez votre randonnée idéale..."
             disabled={isLoading}
-            className="w-full p-2 pl-4 pr-10 border border-gray-300 rounded-full focus:outline-none 
-                     focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full p-2 pl-4 pr-10 border border-gray-300 rounded-full 
+                     focus:outline-none focus:ring-2 focus:ring-green-500 
+                     focus:border-transparent shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] bg-gray-50"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
             className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full 
-                     bg-green-600 text-white hover:bg-green-700 transition-colors 
+                     bg-gradient-to-r from-green-500 to-green-600 text-white 
+                     hover:from-green-600 hover:to-green-700 transition-colors 
+                     shadow-[0_2px_4px_rgba(0,0,0,0.2),_0_1px_0_rgba(255,255,255,0.2)_inset]
                      disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M22 2L11 13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M22 2L15 22L11 13L2 9L22 2Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

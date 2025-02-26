@@ -191,7 +191,7 @@ body {
   @apply overflow-hidden;
 }
 
-/* Améliorer le style des scrollbars */
+/* Améliorer les scrollbars pour une meilleure expérience utilisateur */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
@@ -199,6 +199,7 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -206,11 +207,85 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
 
-/* Styles pour le panneau mobile */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Animation de transition pour les interfaces */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Effet d'ombre élégant */
+.shadow-elegant {
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Effet de survol doux pour les cartes */
+.hover-lift {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 4px 8px rgba(0, 0, 0, 0.05),
+    0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+/* Effet de bordure élégant */
+.border-focus {
+  transition: border-color 0.2s;
+}
+
+.border-focus:focus-within {
+  border-color: #10B981;
+}
+
+/* Tronquer le texte avec des ellipses après plusieurs lignes */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Transition de base pour les éléments interactifs */
+.transition-base {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Optimisations pour les appareils mobiles */
 @media (max-width: 768px) {
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   .touch-handle {
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
@@ -366,4 +441,215 @@ body {
 .content-scroll {
   @apply overflow-y-auto overscroll-contain;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Styles spécifiques pour les badges de difficulté */
+.badge-difficulty-easy {
+  @apply bg-green-100 text-green-800 border-green-200;
+}
+
+.badge-difficulty-medium {
+  @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+}
+
+.badge-difficulty-hard {
+  @apply bg-orange-100 text-orange-800 border-orange-200;
+}
+
+.badge-difficulty-extreme {
+  @apply bg-red-100 text-red-800 border-red-200;
+}
+
+/* Accessibilité - focus visible */
+:focus-visible {
+  outline: 2px solid #10B981;
+  outline-offset: 2px;
+}
+
+/* Styles pour les effets de relief et de profondeur */
+.relief-shadow {
+  box-shadow: 
+    0 10px 20px rgba(0, 0, 0, 0.1),
+    0 3px 6px rgba(0, 0, 0, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+}
+
+.relief-inset {
+  box-shadow: 
+    inset 0 2px 5px rgba(0, 0, 0, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.8);
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.05));
+}
+
+.relief-button {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.05));
+}
+
+.relief-button:active {
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 0 0 rgba(255, 255, 255, 0.3) inset,
+    0 1px 1px rgba(0, 0, 0, 0.2) inset;
+  background-image: linear-gradient(to top, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.05));
+  transform: translateY(1px);
+}
+
+/* Effet d'ombrage pour les éléments adjacents */
+.shadow-left {
+  box-shadow: -8px 0 15px -5px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-right {
+  box-shadow: 8px 0 15px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation subtile pour l'effet de hover */
+@keyframes subtle-lift {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-2px); }
+}
+
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  animation: subtle-lift 0.2s ease forwards;
+  box-shadow: 
+    0 5px 15px rgba(0, 0, 0, 0.1),
+    0 3px 6px rgba(0, 0, 0, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+}
+
+/* Styles pour le header et le footer */
+.header-relief {
+  position: relative;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+  z-index: 40;
+}
+
+.header-relief::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.footer-relief {
+  position: relative;
+  box-shadow: 
+    0 -4px 10px rgba(0, 0, 0, 0.05),
+    0 -1px 0 rgba(0, 0, 0, 0.05) inset,
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+.footer-relief::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+}
+
+/* Effet de bouton en relief pour la navigation */
+.nav-button {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.nav-button::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #10B981;
+  transition: width 0.3s ease;
+}
+
+.nav-button:hover::after {
+  width: 100%;
+}
+
+.nav-button.active {
+  color: #10B981;
+}
+
+.nav-button.active::after {
+  width: 100%;
+}
+
+/* Effet de relief pour le bouton de connexion */
+.relief-button-auth {
+  background-image: linear-gradient(to bottom, #10B981, #059669);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  transition: all 0.2s ease;
+}
+
+.relief-button-auth:hover {
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  transform: translateY(-1px);
+}
+
+.relief-button-auth:active {
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 1px 0 rgba(0, 0, 0, 0.1) inset;
+  transform: translateY(1px);
+}
+
+/* Animation pour les liens du footer */
+.footer-link {
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.footer-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 1px;
+  background-color: #10B981;
+  transition: width 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #10B981;
+}
+
+.footer-link:hover::after {
+  width: 100%;
+}
+
+/* Icônes sociales avec effet de relief */
+.social-icon {
+  color: #6B7280;
+  transition: all 0.2s ease;
+}
+
+.social-icon:hover {
+  color: #10B981;
+  transform: translateY(-2px);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
 }
