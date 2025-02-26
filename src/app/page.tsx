@@ -132,9 +132,9 @@ export default function Home() {
   }, [hoveredTrailId, isUserScrolling, scrollToHike]);
 
   return (
-    <main className="h-screen overflow-hidden flex flex-col bg-gray-200">
+    <main className="h-screen overflow-hidden flex flex-col bg-white border-b border-gray-200 ">
       {/* Header amélioré avec effet de relief et navigation */}
-      <header className="bg-white border-b relative shadow-[0_4px_10px_rgba(0,0,0,0.05),_0_1px_0_rgba(255,255,255,0.8)_inset]">
+      <header className="   relative  z-0 ">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             {/* Logo et titre */}
@@ -184,19 +184,18 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Effet de relief sous le header */}
-        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+ 
       </header>
 
       {/* Conteneur principal sans espaces entre les éléments */}
       <div className="flex-1 grid grid-cols-12 overflow-hidden bg-gray-200 ">
         
         {/* Panneau de gauche - Chat */}
-        <div className="col-span-12 md:col-span-3 lg:col-span-3 bg-white overflow-hidden flex flex-col relative  
+        <div className="col-span-12 md:col-span-3 lg:col-span-4 bg-white overflow-hidden flex flex-col relative  
                       shadow-[0_15px_25px_rgba(0,0,0,0.1)_inset,_0_-3px_0_rgba(255,255,255,0.8)_inset,_5px_0_15px_-5px_rgba(0,0,0,0.3)]
                       z-30">
-          <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 border-b flex items-center">
-            <h2 className="text-sm font-medium text-white">Conversation</h2>
+          <div className="p-2   border-b flex items-center">
+            <h2 className="text-sm font-medium text-black text-center w-full">Conversation</h2>
           </div>
           <div className="flex-1 overflow-hidden">
             <ChatInterface 
@@ -210,11 +209,11 @@ export default function Home() {
         </div>
         
         {/* Panneau central - Résultats */}
-        <div className="md:block md:col-span-3 lg:col-span-3 bg-white overflow-hidden flex flex-col relative
+        <div className="md:block md:col-span-3 lg:col-span-4 bg-white overflow-hidden flex flex-col relative 
                       shadow-[0_15px_25px_rgba(0,0,0,0.1)_inset,_0_-3px_0_rgba(255,255,255,0.8)_inset,_5px_0_15px_-5px_rgba(0,0,0,0.3)]
                       z-20">
           <div className="p-2   border-b flex justify-between items-center">
-            <h2 className="text-sm font-medium text-black">
+            <h2 className="text-sm font-medium text-black text-center w-full">
               {searchResults ? `Résultats (${searchResults.results.length})` : 'Résultats'}
             </h2>
             {isSearching && (
@@ -250,7 +249,7 @@ export default function Home() {
         </div>
         
         {/* Panneau droit - Carte */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-6 relative
+        <div className="col-span-12 md:col-span-6 lg:col-span-4 relative
                       shadow-[0_15px_25px_rgba(0,0,0,0.2)_inset,_0_-3px_0_rgba(255,255,255,0.8)_inset]
                       z-10">
           <CevennesMap

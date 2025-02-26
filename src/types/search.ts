@@ -51,96 +51,31 @@ export interface SearchResponse {
 export interface HikeResult {
   id_local: string;
   nom_itineraire: string;
-  presentation: string;
-  presentation_courte?: string;
-  longueur: number;
-  difficulte: string;
-  pratique: string;
-  score: number;
-  instructions: string;
-  
-  // Informations géographiques
-  depart: string;
-  arrivee: string;
-  type_itineraire?: string;
-  coordonnees_depart?: { lat: number; lon: number };
-  coordonnees_arrivee?: { lat: number; lon: number };
+  description?: string;
   geometry: {
     type: string;
-    coordinates: [number, number][];
+    coordinates: [number, number][]
   };
-  communes_nom?: string;
-  
-  // Caractéristiques techniques
-  balisage?: string;
+  duree: number;
   denivele_positif: number;
   denivele_negatif?: number;
-  altitude_min?: number;
-  altitude_max?: number;
-  duree?: number;
-  type_sol?: string;
-  
-  // Informations pratiques
-  points_interet?: string[];
-  accessibilite?: {
-    pmr: boolean;
-    poussette: boolean;
-    niveau_difficulte_acces?: string;
-  };
-  note_moyenne?: number;
-  nombre_avis?: number;
-  parking_info?: string;
-  parking_geometrie?: {
-    type: string;
-    coordinates: [number, number][];
-  };
-  acces_routier?: string;
-  transports_commun?: string;
-  
-  // Recommandations
-  saison_recommandee?: string;
-  equipements_recommandes?: string[];
-  themes?: string;
-  recommandations?: string;
-  
-  // Médias
-  medias?: Array<{
-    titre?: string;
-    legende?: string;
-    type: string;
-    url: string;
-    auteur?: string;
-    licence?: string;
-    type_media?: string;
-  }>;
-
-  id_local: string;
-  nom_itineraire: string;
-  geometry: {
-    type: string;
-    coordinates: [number, number][];
-  };
-  departements: string[];
-  communes_nom: string[];
-  difficulte: string;
-  duree: number;
   longueur: number;
-  denivele_positif: number;
-  denivele_negatif: number;
-  altitude_maximum: number;
-  altitude_minimum: number;
-  duree_text?: string;
-  description?: string;
-  recommandations?: string;
+  difficulte: string;
+  pratique?: string;
+  parcours?: 'Boucle' | 'Aller-retour' | 'Itinérance' | string;
   themes?: string[];
-  pratique: string;
-  accessibilite?: string;
-  reglementation?: string;
-  source?: string;
-  date_creation?: string;
-  date_modification?: string;
-  type_sol?: string[];
-  photo_couverture?: string;
+  image?: string;
+  commune?: string;
+  depart?: string;
+  arrivee?: string;
+  saisons?: string[];
+  accessible?: string[];
+  altitudes?: {
+    min: number;
+    max: number;
+  };
+  gpx_url?: string;
+  website_url?: string;
 }
 
 // Ajout du type pour la nouvelle structure LLM
@@ -163,7 +98,6 @@ export type LLMResponse = {
 };
 
 export interface Message {
-  role: 'user' | 'system' | 'assistant';
-  content: string | Record<string, any>;
-  timestamp?: string;
+  role: 'user' | 'assistant' | 'system';
+  content: any;
 } 
