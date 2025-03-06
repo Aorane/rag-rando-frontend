@@ -10,387 +10,190 @@ import { searchHikes } from '@/services/api';
 import type { SearchResponse, HikeResult, Message } from '@/types/search';
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [hoveredTrailId, setHoveredTrailId] = useState<string | null>(null);
   const [selectedHike, setSelectedHike] = useState<HikeResult | null>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
-  const [isUserScrolling,] = useState(false);
-  const [activeTab, setActiveTab] = useState("chat");
-  const [isPanelVisible, setIsPanelVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResultsPanelExpanded, setIsResultsPanelExpanded] = useState(false);
+  const [isMobilePanelVisible, setIsMobilePanelVisible] = useState(false);
   const [chatMessages, setChatMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Bonjour ! Je suis votre assistant de randonnée dans les Cévennes. Comment puis-je vous aider aujourd\'hui ?' }
-  ]);
-  const [context, setContext] = useState<Record<string, unknown>>({});
-
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) return;
-
-    setIsSearching(true);
-    setSearchQuery(query);
-
-    try {
-      const results = await searchHikes(query, chatMessages, context);
-      setSearchResults(results);
-      // Si c'est la première requête, stocker l'ID de conversation
-      if (!context && results.context) {
-        setContext(results.context);
-      }
-    } catch (err) {
-      console.error("Une erreur s'est produite lors de la recherche.", err);
-    } finally {
-      setIsSearching(false);
+    {
+      role: 'assistant',
+      content: 'Bonjour ! Je suis votre assistant de randonnée dans les Cévennes. Comment puis-je vous aider à trouver la randonnée qui vous correspond ?'
     }
-  };
+  ]);
+
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = async (message: string) => {
-    // Ajouter le message de l'utilisateur au chat
-    const updatedMessages = [
-      ...chatMessages, 
-      { role: 'user' as const, content: message }
-    ];
-    
+    const updatedMessages = [...chatMessages, { role: 'user' as const, content: message }];
     setChatMessages(updatedMessages);
-    setIsSearching(true);
+    setIsLoading(true);
     
     try {
-      // Lancer la recherche avec tous les messages et le contexte
-      const results = await searchHikes(message, updatedMessages, context);
+      const  resultats = searchResults?.results;
+      const response = await searchHikes(message, updatedMessages, resultats);
+      console.log('response', response);
+      const enrichedMessage: Message = {
+        role: 'assistant',
+        content: {
+          response: response.response,
+          synthese: response.context.synthese || '',
+          conclusion: response.context.conclusion || '',
+          randonnees: response.results,
+          nombre_resultats: response.context.nombre_resultats || 0,
+          criteres_recherche: response.context.criteres_recherche || {}
+        }
+      };
       
-      // Mettre à jour les résultats
-      setSearchResults(results);
-      
-      // Stocker le nouveau contexte
-      setContext(results.context || {});
-      
-      // Extraire le message de réponse formaté pour l'affichage
-      let responseMessage = "";
-      
-      if (results.response && typeof results.response === 'object' && results.response.summary) {
-        // Utiliser directement l'objet response pour l'affichage
-        const assistantMessage: Message = { 
-          role: 'assistant' as const, 
-          content: results.response 
-        };
-        setChatMessages([...updatedMessages, assistantMessage]);
-      } else if (typeof results.response === 'string') {
-        // Si la réponse est une chaîne directe
-        responseMessage = results.response;
-        setChatMessages([...updatedMessages, { 
-          role: 'assistant' as const, 
-          content: responseMessage
-        }]);
-      } else if (Array.isArray(results.messages) && results.messages.length > 0) {
-        // Utiliser uniquement les messages de l'API s'ils existent
-        setChatMessages(results.messages);
-      } else {
-        // Message par défaut
-        responseMessage = "J'ai trouvé quelques randonnées qui pourraient vous intéresser.";
-        setChatMessages([...updatedMessages, { 
-          role: 'assistant' as const, 
-          content: responseMessage
-        }]);
-      }
+      setChatMessages([...updatedMessages, enrichedMessage]);
+      setSearchResults(response);
     } catch (err) {
       console.error("Une erreur s'est produite lors de la recherche.", err);
       setChatMessages([...updatedMessages, { 
-        role: 'assistant' as const, 
+        role: 'assistant', 
         content: "Désolé, j'ai rencontré un problème lors de la recherche. Veuillez réessayer." 
       }]);
     } finally {
-      setIsSearching(false);
+      setIsLoading(false);
     }
   };
 
-  // Fonction pour faire défiler jusqu'à la randonnée
+  // Fonction pour faire défiler jusqu'à la randonnée sélectionnée
   const scrollToHike = (hikeId: string) => {
-    if (!resultsRef.current || isUserScrolling) return;
+    if (!resultsRef.current) return;
+    if (!isResultsPanelExpanded) setIsResultsPanelExpanded(true);
 
     const hikeElement = resultsRef.current.querySelector(`[data-hike-id="${hikeId}"]`);
     if (hikeElement) {
-      // Calculer la position de défilement dans le conteneur
       const container = resultsRef.current;
       const elementTop = (hikeElement as HTMLElement).offsetTop;
       const containerHeight = container.clientHeight;
-
-      // Centrer l'élément dans le conteneur de défilement
-      const targetScroll = elementTop - containerHeight / 2 + (hikeElement as HTMLElement).clientHeight / 2;
-
       container.scrollTo({
-        top: targetScroll,
+        top: elementTop - containerHeight / 2 + (hikeElement as HTMLElement).clientHeight / 2,
         behavior: 'smooth'
       });
     }
   };
 
-  // Effet pour gérer le défilement automatique lors du survol sur la carte
   useEffect(() => {
-    if (hoveredTrailId && !isUserScrolling) {
-      scrollToHike(hoveredTrailId);
-    }
-  }, [hoveredTrailId, isUserScrolling, scrollToHike]);
+    if (hoveredTrailId) scrollToHike(hoveredTrailId);
+  }, [hoveredTrailId]);
 
   return (
-    <main className="h-screen overflow-hidden flex flex-col bg-white border-b border-gray-200 ">
-      {/* Header amélioré avec effet de relief et navigation */}
-      <header className="   relative  z-0 ">
+    <main className="h-screen overflow-hidden flex flex-col bg-white">
+      {/* Header simplifié */}
+      <header className="relative z-0 border-b border-gray-200">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            {/* Logo et titre */}
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <svg className="w-9 h-9 text-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 12L8 8L12 12L16 8L20 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M4 16L8 12L12 16L16 12L20 16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {/* Effet de relief sur le logo */}
-                <div className="absolute inset-0 rounded-full pointer-events-none" style={{ 
-                  boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.7), inset 0 -1px 2px rgba(0,0,0,0.1)'
-                }}></div>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">Cévennes Rando</h1>
-                <p className="text-xs text-gray-500 -mt-1">Explorez le parc national</p>
-              </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-9 h-9 text-green-600" viewBox="0 0 24 24" fill="none">
+              <path d="M4 12L8 8L12 12L16 8L20 12M4 16L8 12L12 16L16 12L20 16" 
+                    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">Cévennes Rando</h1>
+              <p className="text-xs text-gray-500 -mt-1">Explorez le parc national</p>
             </div>
-            
-            {/* Navigation desktop */}
-            <nav className="hidden md:flex items-center gap-6">
-              <a href="#" className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors relative group">
-                Accueil
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-500 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-              <a href="#" className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors relative group">
-                Explorer
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-500 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-              <a href="#" className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors relative group">
-                À propos du site
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-500 transition-all duration-300 group-hover:w-full"></span>
-              </a>
- 
-              <button className="ml-4 px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 rounded-full hover:from-green-600 hover:to-green-700 transition-colors shadow-[0_2px_4px_rgba(0,0,0,0.1),_0_1px_0_rgba(255,255,255,0.2)_inset] active:shadow-[0_1px_2px_rgba(0,0,0,0.1),_0_1px_1px_rgba(0,0,0,0.1)_inset] active:translate-y-0.5">
-              Contact
-              </button>
-            </nav>
-            
-            {/* Menu mobile */}
-            <button className="md:hidden p-2 text-gray-700 hover:text-green-600 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
           </div>
         </div>
-        
- 
       </header>
 
-      {/* Conteneur principal sans espaces entre les éléments */}
-      <div className="flex-1 grid grid-cols-12 overflow-hidden bg-gray-200 ">
-        
-        {/* Panneau de gauche - Chat */}
-        <div className="col-span-12 md:col-span-3 lg:col-span-4 bg-white overflow-hidden flex flex-col relative  
-                      shadow-[0_15px_25px_rgba(0,0,0,0.1)_inset,_0_-3px_0_rgba(255,255,255,0.8)_inset,_5px_0_15px_-5px_rgba(0,0,0,0.3)]
-                      z-30">
-          <div className="p-2   border-b flex items-center">
-            <h2 className="text-sm font-medium text-black text-center w-full">Conversation</h2>
+      {/* Conteneur principal */}
+      <div className="flex-1 grid grid-cols-12 overflow-hidden bg-gray-200">
+        {/* Chat */}
+        <div className={`col-span-12 md:col-span-3 lg:col-span-4 bg-white overflow-hidden flex flex-col relative
+                      shadow-lg z-30 ${!isResultsPanelExpanded ? 'md:col-span-5 lg:col-span-6' : ''}`}>
+          <div className="p-2 border-b">
+            <h2 className="text-sm font-medium text-black text-center">Conversation</h2>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <ChatInterface 
-              messages={chatMessages}
-              onSendMessage={handleSendMessage}
-              isLoading={isSearching}
-            />
-          </div>
-          {/* Bord droit pour effet de profondeur */}
-          <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-gray-300 via-gray-200 to-gray-300 shadow-[1px_0_3px_rgba(0,0,0,0.1)]"></div>
+          <ChatInterface 
+            messages={chatMessages}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+          />
         </div>
         
-        {/* Panneau central - Résultats */}
-        <div className="md:block md:col-span-3 lg:col-span-4 bg-white overflow-hidden flex flex-col relative 
-                      shadow-[0_15px_25px_rgba(0,0,0,0.1)_inset,_0_-3px_0_rgba(255,255,255,0.8)_inset,_5px_0_15px_-5px_rgba(0,0,0,0.3)]
-                      z-20">
-          <div className="p-2   border-b flex justify-between items-center">
-            <h2 className="text-sm font-medium text-black text-center w-full">
+        {/* Liste des résultats */}
+        <div className={`
+          ${isResultsPanelExpanded ? 'md:block md:col-span-3 lg:col-span-4' : 'md:block md:col-span-1 lg:col-span-1'} 
+          bg-white overflow-hidden flex flex-col relative shadow-lg z-20 transition-all duration-300`}>
+          <div className="p-2 border-b flex justify-between items-center">
+            <button 
+              onClick={() => setIsResultsPanelExpanded(!isResultsPanelExpanded)}
+              className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-900 bg-gray-100 rounded-full"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d={isResultsPanelExpanded ? "M11 19l-7-7 7-7m8 14l-7-7 7-7" : "M13 5l7 7-7 7M5 5l7 7-7 7"} />
+              </svg>
+            </button>
+            <h2 className="text-sm font-medium text-black">
               {searchResults ? `Résultats (${searchResults.results.length})` : 'Résultats'}
             </h2>
-            {isSearching && (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            )}
           </div>
-          <div className="h-full overflow-y-auto  p-2 custom-scrollbar pb-12">
+          <div ref={resultsRef} className={`h-full overflow-y-auto p-2 custom-scrollbar ${isResultsPanelExpanded ? 'block' : 'hidden md:block md:opacity-0'}`}>
             {searchResults?.results.map((hike) => (
               <HikeCard
                 key={hike.id_local}
                 hike={hike}
-                onHover={(id) => setHoveredTrailId(id)}
-                onSelect={(h) => setSelectedHike(h)}
+                onHover={setHoveredTrailId}
+                onSelect={setSelectedHike}
                 isHighlighted={hoveredTrailId === hike.id_local}
               />
             ))}
-            
-            {searchResults && searchResults.results.length === 0 && (
+            {!searchResults?.results.length && (
               <div className="p-4 text-center text-gray-500">
-                Aucune randonnée trouvée. Essayez de modifier vos critères.
-              </div>
-            )}
-            
-            {!searchResults && (
-              <div className="p-4 text-center text-gray-500">
-                Utilisez le chat pour trouver des randonnées adaptées à vos envies.
+                {searchResults ? "Aucune randonnée trouvée." : "Utilisez le chat pour trouver des randonnées."}
               </div>
             )}
           </div>
-          {/* Bords pour effet de profondeur */}
-          <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-gray-300 via-gray-200 to-gray-300 shadow-[-1px_0_3px_rgba(0,0,0,0.1)]"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-gray-300 via-gray-200 to-gray-300 shadow-[1px_0_3px_rgba(0,0,0,0.1)]"></div>
         </div>
         
-        {/* Panneau droit - Carte */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-4 relative
-                      shadow-[0_15px_25px_rgba(0,0,0,0.2)_inset,_0_-3px_0_rgba(255,255,255,0.8)_inset]
-                      z-10">
+        {/* Carte */}
+        <div className={`col-span-12 md:col-span-6 lg:col-span-4 relative shadow-lg z-10 
+                      ${!isResultsPanelExpanded ? 'md:col-span-6 lg:col-span-5' : ''}`}>
           <CevennesMap
-            hikingPoints={searchResults?.results.map(hike => ({
-              id: hike.id_local,
-              coordinates: hike.geometry.coordinates,
-              name: hike.nom_itineraire,
-              difficulty: hike.difficulte,
-              duration: hike.duree,
-              distance: hike.longueur,
-              elevation: hike.denivele_positif
-            }))}
+            randonnees={searchResults?.results
+              .map(rando => {
+                console.log('rando', rando);
+                return ({
+                id_local: rando.id_local,
+                nom_itineraire: rando.nom_itineraire,
+                geometry: rando.geometry!,
+                difficulte: rando.difficulte,
+                duree: rando.duree,
+                longueur: rando.longueur,
+                denivele_positif: rando.denivele_positif
+              })})}
             hoveredTrailId={hoveredTrailId}
             onHover={setHoveredTrailId}
           />
-          {/* Effet de relief sur les bords */}
-          <div className="absolute inset-0 pointer-events-none" style={{ 
-            boxShadow: 'inset 0 0 30px rgba(0,0,0,0.15)'
-          }}></div>
-          {/* Bord gauche pour effet de profondeur */}
-          <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-gray-300 via-gray-200 to-gray-300 shadow-[-1px_0_3px_rgba(0,0,0,0.1)]"></div>
         </div>
 
-        {/* Panneau mobile pour les résultats et le chat */}
+        {/* Panel mobile */}
         <div className="fixed md:hidden bottom-0 left-0 right-0 z-40">
-          <div 
-            className={`
-              bg-white rounded-t-xl shadow-xl
-              transform transition-transform duration-300 ease-in-out
-              ${isPanelVisible ? 'translate-y-0' : 'translate-y-[90%]'}
-              h-[80vh] flex flex-col
-            `}
-          >
-            {/* Poignée de glissement */}
-            <div 
-              className="h-8 flex items-center justify-center cursor-grab active:cursor-grabbing"
-              onClick={() => setIsPanelVisible(!isPanelVisible)}
-            >
+          <div className={`bg-white rounded-t-xl shadow-xl transform transition-transform duration-300
+                        ${isMobilePanelVisible ? 'translate-y-0' : 'translate-y-[90%]'} h-[80vh]`}>
+            <div className="h-8 flex items-center justify-center" onClick={() => setIsMobilePanelVisible(!isMobilePanelVisible)}>
               <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
             </div>
-            
-            {/* Onglets sur mobile */}
-            <div className="flex border-b border-gray-200">
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`flex-1 py-2 text-sm font-medium relative
-                           ${activeTab === 'chat' ? 'text-green-600' : 'text-gray-500'}`}
-              >
-                Chat
-                {activeTab === 'chat' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600" />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('results')}
-                className={`flex-1 py-2 text-sm font-medium relative
-                           ${activeTab === 'results' ? 'text-green-600' : 'text-gray-500'}`}
-              >
-                Résultats
-                {activeTab === 'results' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600" />
-                )}
-              </button>
-            </div>
-            
-            {/* Contenu des onglets */}
-            <div className="flex-1 relative overflow-hidden">
-              <div 
-                className={`absolute inset-0 transition-transform duration-300 ease-in-out
-                           ${activeTab === 'chat' ? 'translate-x-0' : '-translate-x-full'}`}
-              >
-                <ChatInterface 
-                  messages={chatMessages}
-                  onSendMessage={handleSendMessage}
-                  isLoading={isSearching}
-                />
-              </div>
-              
-              <div 
-                className={`absolute inset-0 transition-transform duration-300 ease-in-out
-                           ${activeTab === 'results' ? 'translate-x-0' : 'translate-x-full'}`}
-              >
-                <div className="flex-1 overflow-y-auto p-2 h-full custom-scrollbar">
-                  {searchResults?.results.map((hike) => (
-                    <HikeCard
-                      key={hike.id_local}
-                      hike={hike}
-                      onHover={(id) => setHoveredTrailId(id)}
-                      onSelect={(h) => setSelectedHike(h)}
-                      isHighlighted={hoveredTrailId === hike.id_local}
-                    />
-                  ))}
-                  
-                  {searchResults && searchResults.results.length === 0 && (
-                    <div className="p-4 text-center text-gray-500">
-                      Aucune randonnée trouvée. Essayez de modifier vos critères.
-                    </div>
-                  )}
-                  
-                  {!searchResults && (
-                    <div className="p-4 text-center text-gray-500">
-                      Utilisez le chat pour trouver des randonnées adaptées à vos envies.
-                    </div>
-                  )}
-                </div>
-              </div>
+            <div className="h-full overflow-y-auto p-2">
+              <ChatInterface 
+                messages={chatMessages}
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+              />
             </div>
           </div>
         </div>
-        
-        {/* Overlay sombre quand le panneau est ouvert sur mobile */}
-        {isPanelVisible && (
-          <div
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden"
-            onClick={() => setIsPanelVisible(false)}
-          />
-        )}
       </div>
-      
+
       {selectedHike && (
         <HikeModal
           hike={selectedHike}
           onClose={() => setSelectedHike(null)}
         />
       )}
-
-      {/* Footer amélioré avec effet de relief et sections */}
-      <footer className="bg-white border-t relative shadow-[0_-4px_10px_rgba(0,0,0,0.05),_0_-1px_0_rgba(255,255,255,0.8)_inset] z-0">
-        <div className="container mx-auto px-4 pb-4">
-          <div className="  pt-4 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-xs text-gray-500">
-              © 2024 Cévennes Rando. Tous droits réservés.
-            </p>
-            <div className="flex gap-4 mt-3 md:mt-0">
-              <a href="#" className="text-xs text-gray-500 hover:text-green-600 transition-colors">Confidentialité</a>
-              <a href="#" className="text-xs text-gray-500 hover:text-green-600 transition-colors">Conditions d'utilisation</a>
-              <a href="#" className="text-xs text-gray-500 hover:text-green-600 transition-colors">Mentions légales</a>
-            </div>
-          </div>
-    </div>
-      </footer>
     </main>
   );
 }

@@ -16,17 +16,20 @@ import { Style, Stroke, Fill } from 'ol/style';
 import Overlay from 'ol/Overlay';
 
 interface HikingTrail {
-  id: string;
-  coordinates: [number, number][];
-  name: string;
-  difficulty?: string;
-  duration?: number;
-  distance?: number;
-  elevation?: number;
+  id_local: string;
+  nom_itineraire: string;
+  geometry: {
+    type: string;
+    coordinates: [number, number][];
+  };
+  difficulte?: string;
+  duree?: number;
+  longueur?: number;
+  denivele_positif?: number;
 }
 
 interface CevennesMapProps {
-  hikingPoints?: HikingTrail[];
+  randonnees?: HikingTrail[];
   hoveredTrailId?: string | null;
   onHover?: (id: string | null) => void;
 }
@@ -39,7 +42,7 @@ interface NominatimAreaResult {
   boundingbox: string[];
 }
 
-export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover }: CevennesMapProps) {
+export default function CevennesMap({ randonnees = [], hoveredTrailId, onHover }: CevennesMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<Map | null>(null);
   const vectorLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
@@ -211,20 +214,20 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
 
     // Création de la source et des features
     const vectorSource = new VectorSource({
-      features: hikingPoints.map(trail => {
-        const coordinates = trail.coordinates.map(coord => 
+      features: randonnees.map(rando => {
+        const coordinates = rando.geometry.coordinates.map(coord => 
           fromLonLat([coord[0], coord[1]])
         );
         
         const feature = new Feature({
           geometry: new LineString(coordinates),
-          name: trail.name,
-          difficulty: trail.difficulty,
-          duration: trail.duration,
-          distance: trail.distance,
-          elevation: trail.elevation,
+          name: rando.nom_itineraire,
+          difficulty: rando.difficulte,
+          duration: rando.duree,
+          distance: rando.longueur,
+          elevation: rando.denivele_positif,
         });
-        feature.setId(trail.id);
+        feature.setId(rando.id_local);
         return feature;
       }),
     });
@@ -253,7 +256,7 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
     mapInstanceRef.current.addLayer(vectorLayer);
 
     // Ajustement de la vue si nécessaire
-    if (hikingPoints.length > 0) {
+    if (randonnees.length > 0) {
       const extent = vectorSource.getExtent();
       mapInstanceRef.current.getView().fit(extent, {
         padding: [50, 50, 50, 50],
@@ -267,7 +270,7 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
         mapInstanceRef.current.removeLayer(vectorLayerRef.current);
       }
     };
-  }, [hikingPoints, hoveredTrailId]);
+  }, [randonnees, hoveredTrailId]);
 
   return (
     <div className="h-full relative">
@@ -277,46 +280,113 @@ export default function CevennesMap({ hikingPoints = [], hoveredTrailId, onHover
       
       <div 
         ref={tooltipRef}
-        className="absolute hidden bg-white px-3 py-1.5 rounded-lg shadow-lg text-sm 
-                 border border-gray-200 pointer-events-none z-10"
+        className="map-tooltip absolute hidden bg-white px-3 py-1.5 rounded-lg shadow-lg text-sm 
+                 border border-gray-200 pointer-events-none z-10 max-w-xs transform transition-opacity duration-200"
       />
       
-      {/* Contrôles supplémentaires */}
-      <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
-        <button 
-          className="w-8 h-8 bg-white rounded-md shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50"
-          onClick={() => {
-            if (mapInstanceRef.current) {
-              const view = mapInstanceRef.current.getView();
-              const zoom = view.getZoom() || 1;
-              view.animate({
-                zoom: zoom + 1,
-                duration: 250
-              });
-            }
-          }}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        </button>
-        <button 
-          className="w-8 h-8 bg-white rounded-md shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50"
-          onClick={() => {
-            if (mapInstanceRef.current) {
-              const view = mapInstanceRef.current.getView();
-              const zoom = view.getZoom() || 1;
-              view.animate({
-                zoom: zoom - 1,
-                duration: 250
-              });
-            }
-          }}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-          </svg>
-        </button>
+      {/* Contrôles améliorés */}
+      <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 relief-shadow">
+        <div className="bg-white rounded-xl overflow-hidden shadow-lg p-1">
+          <button 
+            className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 relief-button"
+            onClick={() => {
+              if (mapInstanceRef.current) {
+                const view = mapInstanceRef.current.getView();
+                const zoom = view.getZoom() || 1;
+                view.animate({
+                  zoom: zoom + 1,
+                  duration: 250
+                });
+              }
+            }}
+            title="Zoomer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </button>
+          
+          <button 
+            className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 relief-button mt-1"
+            onClick={() => {
+              if (mapInstanceRef.current) {
+                const view = mapInstanceRef.current.getView();
+                const zoom = view.getZoom() || 1;
+                view.animate({
+                  zoom: zoom - 1,
+                  duration: 250
+                });
+              }
+            }}
+            title="Dézoomer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </button>
+          
+          <div className="border-t border-gray-100 my-1"></div>
+          
+          <button 
+            className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 relief-button"
+            onClick={() => {
+              if (cevennesLayerRef.current && mapInstanceRef.current) {
+                const extent = cevennesLayerRef.current.getSource()?.getExtent();
+                if (extent) {
+                  mapInstanceRef.current.getView().fit(extent, {
+                    padding: [50, 50, 50, 50],
+                    maxZoom: 11,
+                    duration: 500
+                  });
+                }
+              }
+            }}
+            title="Vue d'ensemble"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Toggle de style de carte */}
+        <div className="bg-white rounded-xl overflow-hidden shadow-lg mt-2 p-1">
+          <button 
+            className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 relief-button"
+            title="Mode satellite"
+            onClick={() => {
+              // Fonctionnalité pour changer de style de carte
+              // à implémenter dans une future version
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      {/* Indicateur de chargement */}
+      <div className="absolute left-0 right-0 top-0 flex justify-center pointer-events-none z-20">
+        <div className="bg-white shadow-lg rounded-b-lg px-4 py-2 text-sm font-medium text-gray-700 transform transition-transform duration-300 opacity-0" 
+             id="map-loading-indicator">
+          Chargement de la carte...
+        </div>
+      </div>
+      
+      {/* Légende de la carte */}
+      <div className="absolute bottom-4 left-4 z-10 bg-white rounded-lg shadow-lg p-3 max-w-xs text-sm">
+        <h4 className="font-medium text-gray-800 mb-2">Légende</h4>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-1 bg-orange-500 rounded"></div>
+            <span className="text-gray-700">Itinéraires de randonnée</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-1 bg-green-500 rounded"></div>
+            <span className="text-gray-700">Limites du parc des Cévennes</span>
+          </div>
+        </div>
       </div>
     </div>
   );
