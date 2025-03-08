@@ -1,0 +1,164 @@
+#######################################################################
+# Concept de l'application et Description du Backend
+#######################################################################
+
+**Concept de l'application :**  
+L'application est une plateforme de recherche de randonnées basée sur Retrieval Augmented Generation (RAG).  
+Elle permet à l'utilisateur de saisir une requête en langage naturel, pour obtenir des recommandations personnalisées d'itinéraires de randonnée.  
+Pour cela, le backend combine :
+- **Analyse sémantique :** Utilisation d'un modèle Sentence Transformers pour encoder les requêtes.
+- **Recherche hybride :** Interrogation d'un cluster Elasticsearch/OpenSearch afin de réaliser une recherche textuelle et vectorielle (via similarity score calculé en script) sur des données géospatiales.
+- **Génération de synthèse :** Appel à l'API Mistral pour extraire des paramètres de recherche et générer une réponse en langage naturel (LLM).
+
+**Description du Backend (actuellement sous FastAPI) :**  
+Le backend gère plusieurs fonctionnalités essentielles :
+1. **Indexation et Ingestion des Données :**  
+   - Le endpoint `/index_data/` lit un fichier GeoJSON et indexe chaque itinéraire dans Elasticsearch.  
+   - Chaque document est enrichi avec des informations géospatiales, textuelles et un embedding calculé à partir d'un texte concaténé.
+
+2. **Recherche des Itinéraires :**  
+   - L'endpoint `/search/` reçoit une requête en langage naturel et utilise un modèle pour produire un vecteur d'embedding.
+   - Un appel à l'API Mistral extrait et structure les paramètres de recherche (filtres, géolocalisation, etc.).
+   - La requête Elasticsearch combine une clause booléenne (filtres textuels, géospatiaux et numériques) et un script de scoring qui calcule une similarité cosinus entre l'embedding de la requête et celui des documents.
+   - Le résultat inclut une liste d'itinéraires pertinents ainsi qu'une synthèse générée par le LLM pour orienter l'utilisateur.
+
+3. **Services Complémentaires :**  
+   - Utilisation de Nominatim pour la géocodification des localisations.
+   - Vérification de la santé du cluster via l'endpoint `/health/` et validation de l'indexation grâce à `/check_data/`.
+   - Gestion des médias (ici, le champ `medias` est conservé dans chaque document et renvoyé dans la réponse).
+
+**Migration vers Django :**  
+Pour migrer, il faudra :
+- Recréer les endpoints avec Django REST Framework (utilisation d'APIView ou ViewSets).
+- Externaliser la logique métier (indexation, génération d'embeddings, extraction des paramètres avec Mistral, construction des requêtes Elasticsearch) dans des modules ou services réutilisables.
+- Configurer les middlewares (CORS, logging) dans les settings Django.
+- Maintenir la structure et la richesse des données (géospatiales, textuelles et médias) tout en profitant de la robustesse de Django en termes de sécurité et de gestion des interactions frontend/back-end.
+
+#######################################################################
+# Schéma des données sources
+#######################################################################
+
+Attributs                   	Type	Format	Obligatoire	Description
+id_local            chaîne de caractères		Oui	Identifiant de l'objet dans sa BDD source
+producteur          chaîne de caractères		Oui	Structure(s) productrice(s) de l'itinéraire
+contact             chaîne de caractères	email	Non	Contact de la structure publicatrice du jeu de données
+uuid                chaîne de caractères	uuid	Non	Identifiant unique de type UUID
+url                 chaîne de caractères	uri	Non	URL de la fiche source de l'itinéraire
+id_osm              nombre entier		Non	Identifiant de la relation OSM correspondante
+nom_itineraire      chaîne de caractères		Oui	Nom de l'itinéraire
+geometry            chaîne de caractères	object	Oui	Géométrie linéaire de l'itinéraire
+pratique            chaîne de caractères		Oui	Pratique de l'itinéraire (liste de valeurs contrainte)
+type_itineraire     chaîne de caractères		Non	Type d'itinéraire (liste de valeurs contrainte)
+communes_nom        chaîne de caractères		Non	Noms des communes traversées par l'itinéraire
+communes_code       chaîne de caractères		Non	Codes INSEE des communes traversées par l'itinéraire
+depart              chaîne de caractères		Oui	Nom du point de départ
+arrivee             chaîne de caractères		Oui	Nom du point d'arrivée
+duree               nombre réel		Non	Durée de l'itinéraire en heures
+balisage            chaîne de caractères		Non	Balisage(s) utilisé(s) sur l'itinéraire
+longueur            nombre réel		Non	Longueur de l'itinéraire (en mètres)
+difficulte          chaîne de caractères		Non	Difficulté de l'itinéraire
+altitude_max        nombre entier		Non	Altitude maximum de l'itinéraire (en mètres)
+altitude_min        nombre entier		Non	Altitude minimum de l'itinéraire (en mètres)
+denivele_positif    nombre entier		Non	Dénivelé positif de l'itinéraire (en mètres)
+denivele_negatif    nombre entier		Non	Dénivelé négatif de l'itinéraire (en mètres)
+instructions        chaîne de caractères		Oui	Description détaillée (pas à pas) du tracé de l'itinéraire
+presentation        chaîne de caractères		Non	Présentation détaillée de l'itinéraire
+presentation_courte chaîne de caractères		Non	Présentation courte résumant l'itinéraire
+themes              chaîne de caractères		Non	Thèmes ou mots-clefs caractérisant l'itinéraire
+recommandations     chaîne de caractères		Non	Recommandations sur l'itinéraire
+accessibilite       chaîne de caractères		Non	Accessibilité de l'itinéraire à des publics particuliers
+acces_routier       chaîne de caractères		Non	Informations sur les accès routiers
+transports_commun   chaîne de caractères		Non	Informations sur les accès en transports en commun
+parking_info        chaîne de caractères		Non	Informations sur le parking
+parking_geometrie   chaîne de caractères		Non	Localisation du parking
+date_creation       chaîne de caractères	date	Non	Date de création de l'itinéraire dans sa BDD source (AAAA-MM-JJ)
+date_modification   chaîne de caractères	date	Non	Date de dernière modification de l'itinéraire dans sa BDD source (AAAA-MM-JJ)
+medias              tableau		Non	Médias de l'itinéraire (photos, vidéos, audios, documents) avec titre, légende, type, url, auteur et licence)
+itineraire_parent   chaîne de caractères		Non	id_local de l'itinéraire parent dans sa BDD source
+type_sol            chaîne de caractères		Non	Types de sol sur lesquels se parcourt l'itinéraire
+pdipr_inscription   booléen		Non	Inscription au PDIPR
+pdipr_date_inscription   chaîne de caractères	date	Non	Date d'inscription au PDIPR (AAAA-MM-JJ)
+Deux attributs ont des valeurs contraintes :
+
+pratique doit être égal à "pédestre", "trail", "VTT", "cyclo", "gravel", "équestre", "ski de fond", "ski de rando", "raquettes" ou "autre"
+type_itineraire doit être égal à "aller-retour", "boucle", "aller simple", "itinérance" ou "étape"
+
+#######################################################################
+# Structure de la réponse de l'endpoint /search
+#######################################################################
+
+La réponse contient trois parties principales :
+
+1. interpreted_params:
+   {
+     "semantic_text": "description générale extraite de la requête",
+     "location": {"lat": float, "lon": float} ou null,
+     "distance": nombre entier (mètres) ou null,
+     "filters": {
+       "longueur": nombre entier ou {"min": float, "max": float} ou null,
+       "difficulte": string ou null,
+       "pratique": string ou null,
+       "note_minimum": float ou null,
+       "accessibilite": {
+         "pmr": boolean ou null,
+         "poussette": boolean ou null
+       },
+       "saison": string ou null
+     }
+   }
+
+2. results: Liste d'objets contenant pour chaque randonnée :
+   {
+     "id_local": string,              # Identifiant unique
+     "nom_itineraire": string,        # Nom de la randonnée
+     "presentation": string,          # Description détaillée
+     "presentation_courte": string,   # Résumé court
+     "longueur": float,              # En mètres
+     "difficulte": string,           # Niveau de difficulté
+     "pratique": string,             # Type de pratique
+     "score": float,                 # Score de pertinence
+     
+     # Informations géographiques
+     "depart": string,               # Nom du point de départ
+     "arrivee": string,              # Nom du point d'arrivée
+     "type_itineraire": string,      # aller-retour, boucle, etc.
+     "coordonnees_depart": {"lat": float, "lon": float},
+     "coordonnees_arrivee": {"lat": float, "lon": float},
+     "geometry": object,             # Tracé GeoJSON complet
+     "communes_nom": string,         # Communes traversées
+     
+     # Caractéristiques techniques
+     "balisage": string,
+     "denivele_positif": float,
+     "denivele_negatif": float,
+     "altitude_min": float,
+     "altitude_max": float,
+     "duree": float,                 # En heures
+     "type_sol": string,
+     
+     # Informations pratiques
+     "points_interet": array,
+     "accessibilite": {
+       "pmr": boolean,
+       "poussette": boolean,
+       "niveau_difficulte_acces": string
+     },
+     "note_moyenne": float,
+     "nombre_avis": integer,
+     "parking_info": string,
+     "parking_geometrie": object,
+     "acces_routier": string,
+     "transports_commun": string,
+     
+     # Recommandations
+     "saison_recommandee": string,
+     "equipements_recommandes": array,
+     "themes": string,
+     "recommandations": string,
+     
+     # Médias
+     "medias": array                 # Photos, vidéos, etc.
+   }
+
+3. llm_response: string
+   Texte généré par le LLM résumant les résultats et orientant l'utilisateur

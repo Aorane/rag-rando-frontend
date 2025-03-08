@@ -73,7 +73,6 @@ export const getPratiqueIcon = (pratique: string): string => {
   };
   return icons[pratique] || '➡️';
 };
-
 /**
  * Retourne les classes de couleur pour la difficulté.
  */
