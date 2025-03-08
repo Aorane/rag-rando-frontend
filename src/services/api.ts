@@ -1,4 +1,4 @@
-import { SearchResponse, Message, HikeResult } from '@/types/search';
+import { SearchResponse, Message, HikeResult, Coordinates } from '@/types/search';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
@@ -7,7 +7,6 @@ export async function searchHikes(query: string, messages: Message[] = [], resul
     console.log(`query:`, query);
     console.log(`messages:`, messages);
 
-    // Avec l'API stateless, on envoie tout l'historique à chaque fois
     const payload = {
       messages,
       resultats
@@ -22,8 +21,6 @@ export async function searchHikes(query: string, messages: Message[] = [], resul
       body: JSON.stringify(payload)
     });
     
-    console.log(`response:`, response);
-
     if (!response.ok) {
       throw new Error(`Erreur HTTP: ${response.status}`);
     }
@@ -33,34 +30,105 @@ export async function searchHikes(query: string, messages: Message[] = [], resul
     
     // Traiter les résultats si présents
     const processedResults = (data.resultats || []).map((rando: any): HikeResult => {
+      // Conversion des coordonnées
+      const coordonnees_depart: Coordinates | undefined = rando.coordonnees_depart ? {
+        lat: rando.coordonnees_depart.lat,
+        lon: rando.coordonnees_depart.lon
+      } : undefined;
+
+      const coordonnees_arrivee: Coordinates | undefined = rando.coordonnees_arrivee ? {
+        lat: rando.coordonnees_arrivee.lat,
+        lon: rando.coordonnees_arrivee.lon
+      } : undefined;
+
+      // Traitement des médias
+      const medias = Array.isArray(rando.medias) ? rando.medias.map((media: any) => ({
+        titre: media.titre,
+        legende: media.legende,
+        type: media.type,
+        url: media.url,
+        auteur: media.auteur,
+        licence: media.licence
+      })) : undefined;
+
+      // Construction de l'objet randonnée
       return {
+        // Identifiants et métadonnées
         id_local: rando.id_local,
+        producteur: rando.producteur,
+        uuid: rando.uuid,
+        url: rando.url,
+
+        // Informations principales
         nom_itineraire: rando.nom_itineraire || rando.nom,
-        longueur: rando.longueur,
-        difficulte: rando.difficulte,
-        duree: rando.duree,
-        geometry: rando.geometry,
-        denivele_positif: rando.denivele_positif,
-        denivele_negatif: rando.denivele_negatif,
-        presentation: rando.presentation,
+        presentation: rando.presentation || '',
         presentation_courte: rando.presentation_courte,
-        points_forts: Array.isArray(rando.points_forts) ? rando.points_forts : [],
-        themes: Array.isArray(rando.themes) ? rando.themes : [],
-        pratique: rando.pratique,
+        instructions: rando.instructions || '',
+
+        // Caractéristiques techniques
+        longueur: parseFloat(rando.longueur) || 0,
+        duree: parseFloat(rando.duree) || 0,
+        difficulte: rando.difficulte || 'Non spécifiée',
+        pratique: rando.pratique || 'pédestre',
         type_itineraire: rando.type_itineraire,
-        altitude_max: rando.altitude_max,
-        medias: rando.medias,
-        url_details: rando.url_details,
-        transports_commun: rando.transports_commun
+        balisage: rando.balisage,
+
+        // Informations géographiques
+        depart: rando.depart || '',
+        arrivee: rando.arrivee || '',
+        communes_nom: rando.communes_nom,
+        communes_code: rando.communes_code,
+        geometry: rando.geometry,
+        coordonnees_depart,
+        coordonnees_arrivee,
+
+        // Dénivelés et altitudes
+        denivele_positif: parseFloat(rando.denivele_positif) || 0,
+        denivele_negatif: parseFloat(rando.denivele_negatif) || 0,
+        altitude_max: parseFloat(rando.altitude_max),
+        altitude_min: parseFloat(rando.altitude_min),
+
+        // Informations pratiques
+        points_interet: Array.isArray(rando.points_interet) ? rando.points_interet : [],
+        accessibilite: rando.accessibilite ? {
+          pmr: !!rando.accessibilite.pmr,
+          poussette: !!rando.accessibilite.poussette,
+          niveau_difficulte_acces: rando.accessibilite.niveau_difficulte_acces || ''
+        } : undefined,
+        acces_routier: rando.acces_routier,
+        transports_commun: rando.transports_commun,
+        parking_info: rando.parking_info,
+        parking_geometrie: rando.parking_geometrie,
+
+        // Recommandations
+        themes: Array.isArray(rando.themes) ? rando.themes : [],
+        recommandations: rando.recommandations,
+        saison_recommandee: rando.saison_recommandee,
+        equipements_recommandes: Array.isArray(rando.equipements_recommandes) ? 
+          rando.equipements_recommandes : [],
+
+        // Médias
+        medias,
+
+        // Informations complémentaires
+        type_sol: rando.type_sol,
+        note_moyenne: parseFloat(rando.note_moyenne) || undefined,
+        nombre_avis: parseInt(rando.nombre_avis) || undefined,
+
+        // Dates
+        date_creation: rando.date_creation,
+        date_modification: rando.date_modification,
+
+        // PDIPR
+        pdipr_inscription: !!rando.pdipr_inscription,
+        pdipr_date_inscription: rando.pdipr_date_inscription
       };
     });
-    console.log('API processedResults data:', processedResults);
 
     // Extraire les informations de la dernière réponse de l'assistant
     const lastMessage = data.messages[data.messages.length - 1];
     const assistantContent = typeof lastMessage.content === 'object' ? lastMessage.content : { response: lastMessage.content };
     
-    // Conversion de la réponse API au format attendu par notre UI
     return {
       results: processedResults,
       messages: data.messages,

@@ -31,22 +31,21 @@ export default function Home() {
     setIsLoading(true);
     
     try {
-      const  resultats = searchResults?.results;
+      const resultats = searchResults?.results;
       const response = await searchHikes(message, updatedMessages, resultats);
       console.log('response', response);
+
+      // On laisse le message tel que retourné par l'API
       const enrichedMessage: Message = {
         role: 'assistant',
         content: {
           response: response.response,
-          synthese: response.context.synthese || '',
-          conclusion: response.context.conclusion || '',
-          randonnees: response.results,
-          nombre_resultats: response.context.nombre_resultats || 0,
-          criteres_recherche: response.context.criteres_recherche || {}
+          synthese: response.context.synthese,
+          conclusion: response.context.conclusion
         }
       };
       
-      setChatMessages([...updatedMessages, enrichedMessage]);
+      setChatMessages([...updatedMessages, response.messages[response.messages.length - 1]]);
       setSearchResults(response);
     } catch (err) {
       console.error("Une erreur s'est produite lors de la recherche.", err);
@@ -114,7 +113,7 @@ export default function Home() {
         </div>
         
         {/* Liste des résultats */}
-        <div className={`
+        {/* <div className={`
           ${isResultsPanelExpanded ? 'md:block md:col-span-3 lg:col-span-4' : 'md:block md:col-span-1 lg:col-span-1'} 
           bg-white overflow-hidden flex flex-col relative shadow-lg z-20 transition-all duration-300`}>
           <div className="p-2 border-b flex justify-between items-center">
@@ -147,15 +146,15 @@ export default function Home() {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
         
         {/* Carte */}
-        <div className={`col-span-12 md:col-span-6 lg:col-span-4 relative shadow-lg z-10 
+        <div className={`col-span-12 md:col-span-6 lg:col-span-4 relative shadow-lg z-10  
                       ${!isResultsPanelExpanded ? 'md:col-span-6 lg:col-span-5' : ''}`}>
+                        
           <CevennesMap
             randonnees={searchResults?.results
               .map(rando => {
-                console.log('rando', rando);
                 return ({
                 id_local: rando.id_local,
                 nom_itineraire: rando.nom_itineraire,

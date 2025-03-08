@@ -15,8 +15,8 @@ export interface SearchResponse {
   };
   context: {
     // Nouveaux champs pour le contexte enrichi
-    synthese?: string;
-    conclusion?: string;
+    synthese: string;
+    conclusion: string;
     recommandations?: HikeResult[];
     nombre_resultats?: number;
     criteres_recherche?: CriteresRecherche;
@@ -36,7 +36,7 @@ export interface SearchResponse {
   metadata: {
     total: number;
     time: number;
-    params: Record<string, unknown>;
+    params: any;
   };
 }
 
@@ -67,48 +67,94 @@ export interface Analysis {
  * Type exporté pour représenter un résultat de randonnée.
  */
 export interface HikeResult {
+  // Identifiants et métadonnées
   id_local: string;
+  producteur?: string;
+  uuid?: string;
+  url?: string;
+  
+  // Informations principales
   nom_itineraire: string;
-  nom?: string;
-  description?: string;
-  presentation?: string;
+  presentation: string;
   presentation_courte?: string;
-  geometry?: {
-    type: string;
-    coordinates: [number, number][]
-  };
+  instructions: string;
+  
+  // Caractéristiques techniques
+  longueur: number;
   duree: number;
-  denivele_positif: number;
-  denivele_negatif?: number;
-  longueur?: number;
-  longueur_km?: number;
   difficulte: string;
-  pratique?: string;
-  type_itineraire?: string;
-  parcours?: string;
-  themes?: string[];
-  image?: string;
-  commune?: string;
-  communes_nom?: string[];
-  depart?: string;
-  arrivee?: string;
-  saisons?: string[];
-  accessible?: string[];
-  accessibilite?: string[];
-  parking_info?: string;
-  transports_commun?: string;
-  points_forts?: string[];
-  points_interet?: string;
+  pratique: 'pédestre' | 'trail' | 'VTT' | 'cyclo' | 'gravel' | 'équestre' | 'ski de fond' | 'ski de rando' | 'raquettes' | 'autre';
+  type_itineraire?: 'aller-retour' | 'boucle' | 'aller simple' | 'itinérance' | 'étape';
+  balisage?: string;
+  
+  // Informations géographiques
+  depart: string;
+  arrivee: string;
+  communes_nom?: string;
+  communes_code?: string;
+  geometry: any; // GeoJSON
+  coordonnees_depart?: Coordinates;
+  coordonnees_arrivee?: Coordinates;
+  
+  // Dénivelés et altitudes
+  denivele_positif?: number;
+  denivele_negatif?: number;
   altitude_max?: number;
   altitude_min?: number;
-  altitudes?: {
-    min: number;
-    max: number;
+  
+  // Informations pratiques
+  points_interet?: string[];
+  accessibilite?: Accessibilite;
+  acces_routier?: string;
+  transports_commun?: string;
+  parking_info?: string;
+  parking_geometrie?: any;
+  
+  // Recommandations
+  themes?: string | string[];
+  recommandations?: string;
+  saison_recommandee?: string;
+  equipements_recommandes?: string[];
+  
+  // Médias
+  medias?: Media[];
+  
+  // Informations complémentaires
+  type_sol?: string;
+  note_moyenne?: number;
+  nombre_avis?: number;
+  
+  // Dates
+  date_creation?: string;
+  date_modification?: string;
+  
+  // PDIPR
+  pdipr_inscription?: boolean;
+  pdipr_date_inscription?: string;
+  
+  // Profil altimétrique
+  profil_altimetrique?: AltitudeProfile;
+}
+
+// Interface pour les points du profil altimétrique
+export interface ProfilePoint {
+  distance: number;
+  altitude: number;
+  coordinates: {
+    lon: number;
+    lat: number;
   };
-  gpx_url?: string;
-  website_url?: string;
-  // Permettre des champs supplémentaires
-  [key: string]: any;
+}
+
+// Interface pour le profil altimétrique
+export interface AltitudeProfile {
+  elevation_gain: number;
+  elevation_loss: number;
+  image: string;
+  max_altitude: number;
+  min_altitude: number;
+  points: ProfilePoint[];
+  total_distance: number;
 }
 
 // Ajout du type pour la nouvelle structure LLM
@@ -142,5 +188,30 @@ export interface MessageContent {
 
 export interface Message {
   role: 'user' | 'assistant';
-  content: string | MessageContent;
+  content: string | {
+    response: string;
+    synthese?: string;
+    conclusion?: string;
+    recommandations?: HikeResult[];
+  };
+}
+
+export interface Coordinates {
+  lat: number;
+  lon: number;
+}
+
+export interface Media {
+  titre?: string;
+  legende?: string;
+  type: string;
+  url: string;
+  auteur?: string;
+  licence?: string;
+}
+
+export interface Accessibilite {
+  pmr: boolean;
+  poussette: boolean;
+  niveau_difficulte_acces: string;
 } 
