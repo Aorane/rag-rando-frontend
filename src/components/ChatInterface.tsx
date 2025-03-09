@@ -54,9 +54,9 @@ const DifficultyBadge: React.FC<{ difficulty: string }> = ({ difficulty }) => {
     'difficile': 'bg-orange-100 text-orange-800',
     'très difficile': 'bg-red-100 text-red-800'
   };
-  
+
   const colorClass = colors[difficulty.toLowerCase() as keyof DifficultyColor] || 'bg-gray-100 text-gray-800';
-  
+
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
       {difficulty}
@@ -76,7 +76,7 @@ const ImageCarousel: React.FC<{ medias: any[] }> = ({ medias }) => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + medias.length) % medias.length);
   };
 
-    return (
+  return (
     <div className="relative w-full h-48 bg-gray-100">
       {/* Image courante */}
       <Image
@@ -116,9 +116,8 @@ const ImageCarousel: React.FC<{ medias: any[] }> = ({ medias }) => {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                index === currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-              }`}
+              className={`w-2 h-2 rounded-full transition-all duration-200 ${index === currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                }`}
               aria-label={`Aller à l'image ${index + 1}`}
             />
           ))}
@@ -157,20 +156,20 @@ const AltitudeProfile: React.FC<{ profile: AltitudeProfile }> = ({ profile }) =>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={sampledData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eaeaea" />
-          <XAxis 
-            dataKey="distance" 
+          <XAxis
+            dataKey="distance"
             domain={[0, profile.total_distance / 1000]}
             tickFormatter={(value) => `${value.toFixed(1)}`}
             tick={{ fontSize: 10 }}
             label={{ value: 'km', position: 'insideBottomRight', offset: -5 }}
           />
-          <YAxis 
+          <YAxis
             domain={[minAltitude, maxAltitude]}
             tickFormatter={(value) => `${value}m`}
             tick={{ fontSize: 10 }}
             width={35}
           />
-          <Tooltip 
+          <Tooltip
             formatter={(value: number) => [`${value}m`, 'Altitude']}
             labelFormatter={(label: number) => `Distance: ${label.toFixed(1)} km`}
             contentStyle={{ fontSize: '12px', borderRadius: '4px' }}
@@ -181,10 +180,10 @@ const AltitudeProfile: React.FC<{ profile: AltitudeProfile }> = ({ profile }) =>
               <stop offset="90%" stopColor="#bbf7d0" stopOpacity={0.2} />
             </linearGradient>
           </defs>
-          <Area 
-            type="monotone" 
-            dataKey="altitude" 
-            stroke="#16a34a" 
+          <Area
+            type="monotone"
+            dataKey="altitude"
+            stroke="#16a34a"
             strokeWidth={2}
             fill="url(#altitudeGradient)"
             activeDot={{ r: 4 }}
@@ -196,245 +195,298 @@ const AltitudeProfile: React.FC<{ profile: AltitudeProfile }> = ({ profile }) =>
   );
 };
 
-const HikeCard: React.FC<{ hike: HikeResult }> = ({ hike }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden focus:outline-none border border-gray-100 group"
-  >
-    {/* Section supérieure : Image avec overlay complet */}
-    <div className="relative h-48">
-      {/* Image ou gradient */}
-      {hike.medias && hike.medias.length > 0 ? (
-        <div className="absolute inset-0">
-          <ImageCarousel medias={hike.medias} />
-        </div>
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-blue-500 opacity-75"></div>
-      )}
-      
-      {/* Overlay de protection pour le texte */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10"></div>
-      
-      {/* Badge de difficulté */}
-      <div className="absolute top-4 right-4 z-10">
-        <DifficultyBadge difficulty={hike.difficulte || 'Non spécifié'} />
-      </div>
+// Nouveau composant HikeCard avec état pour l'accordéon
+const HikeCard: React.FC<{ hike: HikeResult }> = ({ hike }) => {
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
-      {/* Badges d'accessibilité */}
-      {hike.accessibilite && (
-        <div className="absolute top-4 left-4 z-10 flex gap-2">
-          {hike.accessibilite.pmr && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-white/90 rounded-full backdrop-blur-sm">
-              <span className="text-xs font-medium text-gray-800">PMR</span>
-            </div>
-          )}
-          {hike.accessibilite.poussette && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-white/90 rounded-full backdrop-blur-sm">
-              <span className="text-xs font-medium text-gray-800">Poussette</span>
-            </div>
-          )}
-        </div>
-      )}
+  // Sélectionner la description à afficher (longue si disponible, sinon courte)
+  const description = hike.presentation || hike.presentation_courte || "Aucune description disponible pour cette randonnée.";
 
-      {/* Informations titre et localisation */}
-      <div className="absolute bottom-4 left-4 right-4 z-10">
-        <div className="space-y-1">
-          <h3 className="font-bold text-xl text-white leading-tight">
-            {hike.nom_itineraire}
-          </h3>
-          <div className="flex items-center gap-2 text-sm text-white/90">
-            <FiMapPin className="w-3.5 h-3.5" />
-            <span className="line-clamp-1">{hike.communes_nom || 'Localisation non spécifiée'}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Section inférieure : Contenu informatif */}
-    <div className="p-5 space-y-4">
-      {/* Caractéristiques principales en ligne avec icônes améliorées */}
-      <div className="grid grid-cols-4 gap-2">
-        <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
-          <FiMapPin className="w-5 h-5 text-green-600 mb-1.5" />
-          <div className="text-center">
-            <span className="block font-bold text-sm text-gray-800">{(hike.longueur / 1000).toFixed(1)} km</span>
-            <span className="block text-xs text-gray-500">Distance</span>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
-          <FiClock className="w-5 h-5 text-green-600 mb-1.5" />
-          <div className="text-center">
-            <span className="block font-bold text-sm text-gray-800">{hike.duree ? `${hike.duree.toFixed(1)}h` : '-'}</span>
-            <span className="block text-xs text-gray-500">Durée</span>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
-          <FiArrowUp className="w-5 h-5 text-green-600 mb-1.5" />
-          <div className="text-center">
-            <span className="block font-bold text-sm text-gray-800">+{hike.denivele_positif || 0}m</span>
-            <span className="block text-xs text-gray-500">Dénivelé</span>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
-          <FiArrowDown className="w-5 h-5 text-green-600 mb-1.5" />
-          <div className="text-center">
-            <span className="block font-bold text-sm text-gray-800">{hike.altitude_max || 0}m</span>
-            <span className="block text-xs text-gray-500">Alt. max</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Séparateur avec info de type */}
-      <div className="flex items-center gap-4 py-2">
-        <div className="flex-grow h-px bg-gray-100"></div>
-        <div className="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-100">
-          {hike.type_itineraire || 'Parcours'}
-        </div>
-        <div className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100">
-          {hike.pratique || 'Randonnée'}
-        </div>
-        <div className="flex-grow h-px bg-gray-100"></div>
-      </div>
-
-      {/* Grille d'informations */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Première colonne : Profil altimétrique */}
-        {hike.profil_altimetrique ? (
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 p-2">
-            <div className="flex items-center gap-2 mb-1">
-              <FiTrendingUp className="text-green-600 w-4 h-4" />
-              <span className="text-xs font-medium text-gray-700">Profil altimétrique</span>
-            </div>
-            <div className="h-24">
-              {hike.profil_altimetrique.points && hike.profil_altimetrique.points.length > 0 ? (
-                <AltitudeProfile profile={hike.profil_altimetrique} />
-              ) : hike.profil_altimetrique.image ? (
-                <img
-                  src={hike.profil_altimetrique.image}
-                  alt="Profil altimétrique"
-                  className="w-full h-full object-contain"
-                />
-              ) : null}
-            </div>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden focus:outline-none border border-gray-100 group"
+    >
+      {/* Section supérieure : Image avec overlay complet */}
+      <div className="relative h-48">
+        {/* Image ou gradient */}
+        {hike.medias && hike.medias.length > 0 ? (
+          <div className="absolute inset-0">
+            <ImageCarousel medias={hike.medias} />
           </div>
         ) : (
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 p-4">
-            <div className="flex items-start gap-2">
-              <FiInfo className="text-gray-400 w-4 h-4 mt-0.5" />
-              <div>
-                <span className="text-xs font-medium text-gray-700">Description</span>
-                <p className="text-xs text-gray-600 line-clamp-4 mt-1">
-                  {hike.presentation_courte || "Aucune description disponible pour cette randonnée."}
-                </p>
+          <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-blue-500 opacity-75"></div>
+        )}
+
+        {/* Overlay de protection pour le texte */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10"></div>
+
+        {/* Badge de difficulté */}
+        <div className="absolute top-4 right-4 z-10">
+          <DifficultyBadge difficulty={hike.difficulte || 'Non spécifié'} />
+        </div>
+
+        {/* Badges d'accessibilité */}
+        {hike.accessibilite && (
+          <div className="absolute top-4 left-4 z-10 flex gap-2">
+            {hike.accessibilite.pmr && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-white/90 rounded-full backdrop-blur-sm">
+                <span className="text-xs font-medium text-gray-800">PMR</span>
               </div>
-            </div>
+            )}
+            {hike.accessibilite.poussette && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-white/90 rounded-full backdrop-blur-sm">
+                <span className="text-xs font-medium text-gray-800">Poussette</span>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Deuxième colonne : Informations pratiques */}
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 p-4">
-          <div className="space-y-2">
-            {hike.depart && (
-              <div className="flex gap-2 items-start">
-                <div className="w-4 h-4 mt-0.5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                </div>
-                <div>
-                  <span className="text-xs font-medium text-gray-500">Départ</span>
-                  <p className="text-xs text-gray-700">{hike.depart}</p>
-                </div>
-              </div>
-            )}
-            {hike.arrivee && (
-              <div className="flex gap-2 items-start">
-                <div className="w-4 h-4 mt-0.5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                </div>
-                <div>
-                  <span className="text-xs font-medium text-gray-500">Arrivée</span>
-                  <p className="text-xs text-gray-700">{hike.arrivee}</p>
-                </div>
-              </div>
-            )}
-            {hike.balisage && (
-              <div className="flex gap-2 items-start">
-                <div className="w-4 h-4 mt-0.5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                </div>
-                <div>
-                  <span className="text-xs font-medium text-gray-500">Balisage</span>
-                  <p className="text-xs text-gray-700">{hike.balisage}</p>
-                </div>
-              </div>
-            )}
-            {hike.type_sol && (
-              <div className="flex gap-2 items-start">
-                <div className="w-4 h-4 mt-0.5 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
-                </div>
-                <div>
-                  <span className="text-xs font-medium text-gray-500">Type de sol</span>
-                  <p className="text-xs text-gray-700">{hike.type_sol}</p>
-                </div>
-              </div>
-            )}
+        {/* Informations titre et localisation */}
+        <div className="absolute bottom-4 left-4 right-4 z-10">
+          <div className="space-y-1">
+            <h3 className="font-bold text-xl text-white leading-tight">
+              {hike.nom_itineraire}
+            </h3>
+            <div className="flex items-center gap-2 text-sm text-white/90">
+              <FiMapPin className="w-3.5 h-3.5" />
+              <span className="line-clamp-1">{hike.communes_nom || 'Localisation non spécifiée'}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Information de parking/transport condensée */}
-      {(hike.parking_info || hike.acces_routier || hike.transports_commun) && (
-        <div className="flex items-center gap-2 text-xs bg-blue-50 rounded-lg p-2.5">
-          <FiInfo className="text-blue-500 w-4 h-4 flex-shrink-0" />
-          <span className="text-blue-800">
-            {hike.parking_info ? "Parking disponible" : ""}
-            {hike.parking_info && (hike.acces_routier || hike.transports_commun) ? " • " : ""}
-            {hike.acces_routier ? "Accès routier" : ""}
-            {hike.acces_routier && hike.transports_commun ? " • " : ""}
-            {hike.transports_commun ? "Transports en commun" : ""}
-          </span>
+      {/* Section inférieure : Contenu informatif */}
+      <div className="p-5 space-y-4">
+        {/* Description avec accordéon */}
+        <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 p-4">
+          <div className="flex items-start gap-2">
+            <FiInfo className="text-gray-400 w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-medium text-gray-700">Description</span>
+                <button
+                  onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                  className="text-blue-500 text-xs font-medium hover:text-blue-700 transition-colors"
+                >
+                  {descriptionExpanded ? 'Réduire' : 'Voir plus'}
+                </button>
+              </div>
+              <div className={`relative overflow-hidden transition-all duration-300 ${descriptionExpanded ? 'max-h-[1000px]' : 'max-h-[5rem]'}`}>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  {description}
+                </p>
+                {!descriptionExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent"></div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Thèmes en ligne */}
-      {hike.themes && typeof hike.themes === 'string' && hike.themes.trim() !== '' && (
-        <div className="flex flex-wrap gap-1.5">
-          {hike.themes.split(',').map((theme: string, i: number) => (
-            <span key={i} className="px-2 py-1 bg-gray-50 text-gray-600 text-xs font-medium rounded-lg">
-              {theme.trim()}
+        {/* Caractéristiques principales en ligne avec icônes améliorées */}
+        <div className="grid grid-cols-4 gap-2">
+          <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
+            <FiMapPin className="w-5 h-5 text-green-600 mb-1.5" />
+            <div className="text-center">
+              <span className="block font-bold text-sm text-gray-800">{(hike.longueur / 1000).toFixed(1)} km</span>
+              <span className="block text-xs text-gray-500">Distance</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
+            <FiClock className="w-5 h-5 text-green-600 mb-1.5" />
+            <div className="text-center">
+              <span className="block font-bold text-sm text-gray-800">{hike.duree ? `${hike.duree.toFixed(1)}h` : '-'}</span>
+              <span className="block text-xs text-gray-500">Durée</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
+            <FiArrowUp className="w-5 h-5 text-green-600 mb-1.5" />
+            <div className="text-center">
+              <span className="block font-bold text-sm text-gray-800">+{hike.denivele_positif || 0}m</span>
+              <span className="block text-xs text-gray-500">Dénivelé</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-gray-50 group-hover:bg-green-50 transition-colors">
+            <FiArrowDown className="w-5 h-5 text-green-600 mb-1.5" />
+            <div className="text-center">
+              <span className="block font-bold text-sm text-gray-800">{hike.altitude_max || 0}m</span>
+              <span className="block text-xs text-gray-500">Alt. max</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Séparateur avec info de type */}
+        <div className="flex items-center gap-4 py-2">
+          <div className="flex-grow h-px bg-gray-100"></div>
+          <div className="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-100">
+            {hike.type_itineraire || 'Parcours'}
+          </div>
+          <div className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100">
+            {hike.pratique || 'Randonnée'}
+          </div>
+          <div className="flex-grow h-px bg-gray-100"></div>
+        </div>
+
+        {/* Grille d'informations */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Première colonne : Profil altimétrique */}
+          {hike.profil_altimetrique ? (
+            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <FiTrendingUp className="text-green-600 w-4 h-4" />
+                <span className="text-xs font-medium text-gray-700">Profil altimétrique</span>
+              </div>
+              <div className="h-24">
+                {hike.profil_altimetrique.points && hike.profil_altimetrique.points.length > 0 ? (
+                  <AltitudeProfile profile={hike.profil_altimetrique} />
+                ) : hike.profil_altimetrique.image ? (
+                  <img
+                    src={hike.profil_altimetrique.image}
+                    alt="Profil altimétrique"
+                    className="w-full h-full object-contain"
+                  />
+                ) : null}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 p-4">
+              <div className="flex items-start gap-2">
+                <FiInfo className="text-gray-400 w-4 h-4 mt-0.5" />
+                <div>
+                  <span className="text-xs font-medium text-gray-700">Informations complémentaires</span>
+                  <p className="text-xs text-gray-600 line-clamp-4 mt-1">
+                    {hike.type_sol ? `Type de sol: ${hike.type_sol}` : "Pas d'informations complémentaires disponibles."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Deuxième colonne : Informations pratiques */}
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 p-4">
+            <div className="space-y-2">
+              {hike.depart && (
+                <div className="flex gap-2 items-start">
+                  <div className="w-4 h-4 mt-0.5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-gray-500">Départ</span>
+                    <p className="text-xs text-gray-700">{hike.depart}</p>
+                  </div>
+                </div>
+              )}
+              {hike.arrivee && (
+                <div className="flex gap-2 items-start">
+                  <div className="w-4 h-4 mt-0.5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-gray-500">Arrivée</span>
+                    <p className="text-xs text-gray-700">{hike.arrivee}</p>
+                  </div>
+                </div>
+              )}
+              {hike.balisage && (
+                <div className="flex gap-2 items-start">
+                  <div className="w-4 h-4 mt-0.5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-gray-500">Balisage</span>
+                    <p className="text-xs text-gray-700">{hike.balisage}</p>
+                  </div>
+                </div>
+              )}
+              {hike.type_sol && (
+                <div className="flex gap-2 items-start">
+                  <div className="w-4 h-4 mt-0.5 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-gray-500">Type de sol</span>
+                    <p className="text-xs text-gray-700">{hike.type_sol}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Information de parking/transport condensée */}
+        {(hike.parking_info || hike.acces_routier || hike.transports_commun) && (
+          <div className="flex items-center gap-2 text-xs bg-blue-50 rounded-lg p-2.5">
+            <FiInfo className="text-blue-500 w-4 h-4 flex-shrink-0" />
+            <span className="text-blue-800">
+              {hike.parking_info ? "Parking disponible" : ""}
+              {hike.parking_info && (hike.acces_routier || hike.transports_commun) ? " • " : ""}
+              {hike.acces_routier ? "Accès routier" : ""}
+              {hike.acces_routier && hike.transports_commun ? " • " : ""}
+              {hike.transports_commun ? "Transports en commun" : ""}
             </span>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Recommandation si disponible */}
-      {hike.recommandations && (
-        <div className="bg-amber-50 rounded-lg p-2.5 flex items-start gap-2">
-          <FiAlertTriangle className="text-amber-500 w-4 h-4 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-800 line-clamp-2">{hike.recommandations}</p>
-        </div>
-      )}
-    </div>
-  </motion.div>
-);
+        {/* Thèmes en ligne */}
+        {hike.themes && typeof hike.themes === 'string' && hike.themes.trim() !== '' && (
+          <div className="flex flex-wrap gap-1.5">
+            {hike.themes.split(',').map((theme: string, i: number) => (
+              <span key={i} className="px-2 py-1 bg-gray-50 text-gray-600 text-xs font-medium rounded-lg">
+                {theme.trim()}
+              </span>
+            ))}
+          </div>
+        )}
 
+        {/* Recommandation si disponible */}
+        {hike.recommandations && (
+          <div className="bg-amber-50 rounded-lg p-2.5 flex items-start gap-2">
+            <FiAlertTriangle className="text-amber-500 w-4 h-4 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-800 line-clamp-2">{hike.recommandations}</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 // Composant principal
 export default function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterfaceProps) {
-  const [inputValue, setInputValue] = useState('');
+  const [messageText, setMessageText] = useState('');
   const [suggestions, setSuggestions] = useState(DEFAULT_SUGGESTIONS);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [expandedHikes, setExpandedHikes] = useState<string[]>([]);
 
-  // Scroll automatique
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const toggleHike = (hikeId: string) => {
+    setExpandedHikes(prev => 
+      prev.includes(hikeId) 
+        ? prev.filter(id => id !== hikeId)
+        : [...prev, hikeId]
+    );
+  };
+
+  const toggleAllHikes = (hikes: HikeResult[]) => {
+    if (hikes.some(hike => !expandedHikes.includes(hike.id_local))) {
+      // Si au moins une randonnée est fermée, toutes les ouvrir
+      setExpandedHikes(prev => [...prev, ...hikes.map(h => h.id_local).filter(id => !prev.includes(id))]);
+    } else {
+      // Sinon, toutes les fermer
+      setExpandedHikes(prev => prev.filter(id => !hikes.map(h => h.id_local).includes(id)));
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   // Gestion de la hauteur du textarea
   useEffect(() => {
@@ -442,7 +494,7 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [inputValue]);
+  }, [messageText]);
 
   // Gestion des suggestions dynamiques
   useEffect(() => {
@@ -460,47 +512,90 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() && !isLoading) {
-      onSendMessage(inputValue.trim());
-      setInputValue('');
+    if (messageText.trim() && !isLoading) {
+      onSendMessage(messageText);
+      setMessageText('');
     }
   };
 
   const renderMessageContent = (msg: Message) => {
+    // Message simple (texte uniquement)
     if (typeof msg.content === 'string') {
-              return (
+      return (
         <div className="prose prose-green max-w-none">
           <ReactMarkdown>{msg.content}</ReactMarkdown>
         </div>
       );
     }
+
+    // Message enrichi avec contexte
+    const enrichedContent = msg.content;
     
-    // Message avec ou sans recherche
     return (
       <div className="space-y-4">
         {/* Message principal */}
         <div className="prose prose-green max-w-none">
-          <ReactMarkdown>{msg.content.response}</ReactMarkdown>
+          <ReactMarkdown>{enrichedContent.response}</ReactMarkdown>
         </div>
-        
+
         {/* Bloc de résultats si présent */}
-        {msg.content.synthese && (
+        {enrichedContent.synthese && (
           <div className="mt-4">
             {/* Synthèse discrète */}
-            <p className="text-sm text-gray-600 italic mb-4">{msg.content.synthese}</p>
-
-            {/* Randonnées recommandées */}
-            {msg.content.recommandations && msg.content.recommandations.length > 0 && (
-              <div className="space-y-4">
-                {msg.content.recommandations.map((hike: HikeResult, index: number) => (
-                  <HikeCard key={hike.id_local + index} hike={hike} />
-                ))}
-          </div>
-        )}
-        
+            <p className="text-gray-600 text-sm mb-4">{enrichedContent.synthese}</p>
+            
             {/* Conclusion si présente */}
-            {msg.content.conclusion && (
-              <p className="text-sm text-gray-600 italic mt-4">{msg.content.conclusion}</p>
+            {enrichedContent.conclusion && (
+              <p className="text-gray-700 font-medium mt-4">{enrichedContent.conclusion}</p>
+            )}
+            
+            {/* Randonnées recommandées en accordéon */}
+            {enrichedContent.recommandations && enrichedContent.recommandations.length > 0 && (
+              <div className="space-y-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-gray-800">
+                    Randonnées recommandées ({enrichedContent.recommandations.length})
+                  </h3>
+                  <button 
+                    onClick={() => toggleAllHikes(enrichedContent.recommandations!)}
+                    className="text-blue-600 text-sm hover:text-blue-800 transition-colors"
+                  >
+                    {enrichedContent.recommandations.some(hike => !expandedHikes.includes(hike.id_local)) 
+                      ? "Tout développer" 
+                      : "Tout réduire"}
+                  </button>
+                </div>
+                
+                {enrichedContent.recommandations.map((hike: HikeResult, index: number) => (
+                  <div key={hike.id_local + index} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                    {/* En-tête cliquable */}
+                    <div 
+                      onClick={() => toggleHike(hike.id_local)}
+                      className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <div className={`transform transition-transform duration-200 ${expandedHikes.includes(hike.id_local) ? 'rotate-90' : ''}`}>
+                          <FiChevronRight className="text-gray-500" />
+                        </div>
+                        <h4 className="font-medium text-gray-800">{hike.nom_itineraire}</h4>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">{(hike.longueur / 1000).toFixed(1)} km</span>
+                        <DifficultyBadge difficulty={hike.difficulte || 'Non spécifié'} />
+                      </div>
+                    </div>
+                    
+                    {/* Contenu de la randonnée (visible seulement si développé) */}
+                    <div 
+                      className={`transition-all duration-300 overflow-hidden ${
+                        expandedHikes.includes(hike.id_local) ? 'max-h-[2000px]' : 'max-h-0'
+                      }`}
+                    >
+                      {expandedHikes.includes(hike.id_local) && <HikeCard hike={hike} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -515,18 +610,17 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
         <AnimatePresence>
           {messages.map((msg, index) => (
             <motion.div
-              key={index} 
+              key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-lg ${
-                  msg.role === 'user'
+                className={`max-w-[85%] rounded-lg ${msg.role === 'user'
                     ? 'bg-green-600 text-white px-4 py-3'
                     : 'bg-white shadow-md px-4 py-3'
-                }`}
+                  }`}
               >
                 {renderMessageContent(msg)}
               </div>
@@ -535,27 +629,27 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
         </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
-      
+
       {/* Zone des suggestions */}
       {!isLoading && messages.length < 10 && (
         <div className="px-4 py-2 flex flex-wrap justify-center">
-            {suggestions.map((suggestion, index) => (
+          {suggestions.map((suggestion, index) => (
             <Suggestion
-                key={index}
+              key={index}
               text={suggestion}
-                onClick={() => onSendMessage(suggestion)}
+              onClick={() => onSendMessage(suggestion)}
             />
           ))}
         </div>
       )}
-      
+
       {/* Zone de saisie */}
       <form onSubmit={handleSubmit} className="p-4 bg-white shadow-lg">
         <div className="relative flex items-end space-x-2">
           <textarea
             ref={textareaRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -568,12 +662,11 @@ export default function ChatInterface({ messages, onSendMessage, isLoading }: Ch
           />
           <button
             type="submit"
-            disabled={isLoading || !inputValue.trim()}
-            className={`p-3 rounded-lg ${
-              isLoading || !inputValue.trim()
+            disabled={isLoading || !messageText.trim()}
+            className={`p-3 rounded-lg ${isLoading || !messageText.trim()
                 ? 'bg-gray-200 cursor-not-allowed'
                 : 'bg-green-600 hover:bg-green-700 text-white'
-            } transition-colors duration-200`}
+              } transition-colors duration-200`}
           >
             <FiSend className="w-5 h-5" />
           </button>
